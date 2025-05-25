@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/prisma"
 }
 
 datasource db {
@@ -72,27 +73,23 @@ model MessageFile {
 }
 
 model User {
-  id                  Int           @id @default(autoincrement())
+  id                  Int       @id @default(autoincrement())
   username            String
   surname             String
   birthDate           DateTime?
-  password            String
+  password            String    @unique
   avatarUrl           String?
-  isHiddenContactInfo Boolean       @default(true)
+  isHiddenContactInfo Boolean   @default(true)
   country             String?
   city                String?
-  email               String        @unique
-  privateKey          String
-  privateToken        String
-  primaryPhone        String?
-  type                UserType      @default(PRIVATE)
-  role                UserRole      @default(USER)
-  chatRole            UserChatRole @default(ADMIN)
-  createdAt           DateTime?     @default(now())
-  updatedAt           DateTime?     @default(now())
-
-  Message Message[]
-  threads ThreadParticipant[]
+  email               String    @unique
+  privateKey          String    @unique
+  privateToken        String    @unique
+  primaryPhone        String?   @unique
+  type                UserType  @default(PRIVATE)
+  role                UserRole  @default(USER)
+  createdAt           DateTime? @default(now())
+  updatedAt           DateTime? @default(now())
 }
 
 model Message {
@@ -100,35 +97,41 @@ model Message {
   content     String
   files       MessageFile[]
   status      MessageStatus @default(UNREAD)
-  chatId      Int
   Chat        Chat[]
-  senderId    Int
   createdAt   DateTime?     @default(now())
   updatedAt   DateTime?     @default(now())
   messageType MessageType   @default(TEXT)
-  threadId    Int
   removed     Boolean
   hidden      Boolean
 
-  sender User   @relation(fields: [senderId], references: [id])
-  thread Thread @relation(fields: [threadId], references: [id])
+  chatId      Int
+  senderId    Int
+  threadId    Int
+
+  sender ChatParticipant @relation(fields: [senderId], references: [id])
+  thread Thread          @relation(fields: [threadId], references: [id])
 }
 
 model Thread {
   id           Int                 @id @default(autoincrement())
   messages     Message[]
   participants ThreadParticipant[]
+
+  chatId Int
+
+  chat Chat @relation(fields: [chatId], references: [id])
 }
 
 model ThreadParticipant {
-  id       Int @id @default(autoincrement())
-  userId   Int
-  threadId Int
+  id                Int @id @default(autoincrement())
 
-  user   User   @relation(fields: [userId], references: [id])
-  thread Thread @relation(fields: [threadId], references: [id])
+  chatParticipantId Int
+  threadId          Int
 
-  @@unique([userId, threadId])
+  chatParticipant ChatParticipant @relation(fields: [chatParticipantId], references: [id])
+  thread          Thread          @relation(fields: [threadId], references: [id])
+
+  @@unique([chatParticipantId, threadId])
 }
 
 model Chat {
@@ -136,8 +139,8 @@ model Chat {
   avatarUrl           String?
   hidden              Boolean   @default(false)
   isActive            Boolean   @default(true)
-  name                String
-  readableName        String
+  name                String    @unique
+  readableName        String    @unique
   description         String?
   type                ChatType  @default(PUBLIC)
   isGroupChat         Boolean   @default(false)
@@ -151,4 +154,17 @@ model Chat {
 
   lastMessageId Int
   lastMessage   Message @relation(fields: [lastMessageId], references: [id])
+
+  Thread Thread[]
+}
+
+model ChatParticipant {
+  id       Int          @id @default(autoincrement())
+  chatRole UserChatRole @default(ADMIN)
+
+  userId Int
+  chatId Int
+
+  Messages Message[]
+  Threads ThreadParticipant[]
 }

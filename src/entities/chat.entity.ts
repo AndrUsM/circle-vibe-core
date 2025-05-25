@@ -1,8 +1,9 @@
 import { ChatType } from "@circle-vibe/shared";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
+import { MessageSchema } from "./message.entity";
 
-const ChatSchema = z.object({
+export const ChatSchema = z.object({
   id: z.number(),
   avatarUrl: z.string().optional(),
   hidden: z.boolean().default(false),
@@ -18,6 +19,8 @@ const ChatSchema = z.object({
   empty: z.boolean().default(true),
   unreadMessagesCount: z.number().default(0),
   usersLimit: z.number(),
+  lastMessageId: z.number(),
+  lastMessage: MessageSchema.optional(),
   removed: z.boolean().default(false),
 })
 
