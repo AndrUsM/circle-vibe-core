@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
-import {UserType, UserRole} from '@circle-vibe/shared';
+import { UserType, UserRole } from '@circle-vibe/shared';
 
 export const UserSchema = z.object({
   id: z.number(),
@@ -19,6 +19,6 @@ export const UserSchema = z.object({
   primaryPhone: z.string().optional(),
   type: z.nativeEnum(UserType),
   role: z.nativeEnum(UserRole),
-})
+});
 
 export class User extends createZodDto(UserSchema) {}

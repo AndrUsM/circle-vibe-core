@@ -5,19 +5,20 @@ import {
   HttpCode,
   NotFoundException,
   Post,
-  Res,
 } from '@nestjs/common';
+
+import { UserType, UserRole } from '@circle-vibe/shared';
+
 import { UserService } from '../user/user.service';
 import { AuthentificationInput } from './dtos';
 import { AuthorizationInput } from './dtos/authorization.input';
 import { AuthService } from './auth.service';
-import { User } from 'src/database/generated/prisma';
 
 @Controller('auth')
 export class AuthController {
   constructor(private userService: UserService, private authService: AuthService) {}
 
-  @Post('authentificate')
+  @Post('sign-in')
   @HttpCode(200)
   /**
    * Authenticate a user using the private key
@@ -27,6 +28,10 @@ export class AuthController {
   async authentificate(
     @Body() params: AuthentificationInput,
   ) {
+    if (!params) {
+      return new BadRequestException();
+    }
+
     const user = await this.userService.matchUserByPersonalKey(
       params.identificationKey,
     );
@@ -49,12 +54,15 @@ export class AuthController {
     return { token, user };
   }
 
-  @Post('authorization')
+  @Post('sign-up')
   @HttpCode(201)
   async authorization(
     @Body() params: AuthorizationInput,
-    @Res() res: Response
   ) {
+    if (!params) {
+      return new BadRequestException();
+    }
+
     const isUserWithTheSameEmailExists =
       await this.userService.matchUserByEmail(params?.email);
     const isUserWIthTheSamePhoneExists =
@@ -74,6 +82,8 @@ export class AuthController {
 
     const createdUser = await this.userService.createUser({
       ...params,
+      type: params.type as UserType,
+      role: params.role as UserRole,
       password: encryptedPassword,
     });
 
