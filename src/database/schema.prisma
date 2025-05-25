@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageFileEntityType {
+  IMAGE
+  VIDEO
+  FILE
+}
+
+enum MessageFileType {
+  MP4
+  OGG
+  WEBM
+  AVI
+  DOCUMENT
+  MS_DOCUMENT
+}
+
+enum UserType {
+  PRIVATE
+  PUBLIC
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserChatRole {
+  ADMIN
+  MODERATOR
+  BOT
+  MEMBER
+  TECH_SUPPORT
+}
+
+enum ChatType {
+  PUBLIC
+  PRIVATE
+}
+
+enum MessageStatus {
+  VIEWED
+  UNREAD
+  NOT_SENT
+  DRAFT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+}
+
+model MessageFile {
+  id          Int                   @id @default(autoincrement())
+  fileName    String
+  url         String
+  type        MessageFileType
+  description String?
+  entityType  MessageFileEntityType @default(FILE)
+
+  messageId Int
+  Message   Message[]
+}
+
+model User {
+  id                  Int           @id @default(autoincrement())
+  username            String
+  surname             String
+  birthDate           DateTime?
+  password            String
+  avatarUrl           String?
+  isHiddenContactInfo Boolean       @default(true)
+  country             String?
+  city                String?
+  email               String        @unique
+  privateKey          String
+  privateToken        String
+  primaryPhone        String?
+  type                UserType      @default(PRIVATE)
+  role                UserRole      @default(USER)
+  chatRole            UserChatRole @default(ADMIN)
+  createdAt           DateTime?     @default(now())
+  updatedAt           DateTime?     @default(now())
+
+  Message Message[]
+  threads ThreadParticipant[]
+}
+
+model Message {
+  id          Int           @id @default(autoincrement())
+  content     String
+  files       MessageFile[]
+  status      MessageStatus @default(UNREAD)
+  chatId      Int
+  Chat        Chat[]
+  senderId    Int
+  createdAt   DateTime?     @default(now())
+  updatedAt   DateTime?     @default(now())
+  messageType MessageType   @default(TEXT)
+  threadId    Int
+  removed     Boolean
+  hidden      Boolean
+
+  sender User   @relation(fields: [senderId], references: [id])
+  thread Thread @relation(fields: [threadId], references: [id])
+}
+
+model Thread {
+  id           Int                 @id @default(autoincrement())
+  messages     Message[]
+  participants ThreadParticipant[]
+}
+
+model ThreadParticipant {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  threadId Int
+
+  user   User   @relation(fields: [userId], references: [id])
+  thread Thread @relation(fields: [threadId], references: [id])
+
+  @@unique([userId, threadId])
+}
+
+model Chat {
+  id                  Int       @id @default(autoincrement())
+  avatarUrl           String?
+  hidden              Boolean   @default(false)
+  isActive            Boolean   @default(true)
+  name                String
+  readableName        String
+  description         String?
+  type                ChatType  @default(PUBLIC)
+  isGroupChat         Boolean   @default(false)
+  createdAt           DateTime? @default(now())
+  updatedAt           DateTime? @default(now())
+  hasUnreadMessages   Boolean?  @default(false)
+  empty               Boolean?  @default(true)
+  unreadMessagesCount Int       @default(0)
+  usersLimit          Int
+  removed             Boolean   @default(false)
+
+  lastMessageId Int
+  lastMessage   Message @relation(fields: [lastMessageId], references: [id])
+}
