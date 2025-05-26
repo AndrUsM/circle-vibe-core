@@ -109,7 +109,7 @@ model Message {
   threadId    Int
 
   sender ChatParticipant @relation(fields: [senderId], references: [id])
-  thread Thread          @relation(fields: [threadId], references: [id])
+  thread Thread?          @relation(fields: [threadId], references: [id])
 }
 
 model Thread {
@@ -152,8 +152,8 @@ model Chat {
   usersLimit          Int
   removed             Boolean   @default(false)
 
-  lastMessageId Int
-  lastMessage   Message @relation(fields: [lastMessageId], references: [id])
+  lastMessageId Int?
+  lastMessage   Message?  @relation(fields: [lastMessageId], references: [id])
 
   Thread Thread[]
 }

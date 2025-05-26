@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Post,
 } from '@nestjs/common';
+import { ApiBody, ApiResponse } from '@nestjs/swagger';
 
 import { UserType, UserRole } from '@circle-vibe/shared';
 
@@ -16,18 +17,29 @@ import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private userService: UserService, private authService: AuthService) {}
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+  ) {}
 
   @Post('sign-in')
+  @ApiResponse({
+    status: 200,
+    description: 'The user has been successfully authenticated',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiBody({
+    type: AuthentificationInput,
+    description: 'Request body',
+  })
   @HttpCode(200)
   /**
    * Authenticate a user using the private key
    * @param params The params of the authentification
    * @returns The user if found, otherwise throw a NotFoundException
    */
-  async authentificate(
-    @Body() params: AuthentificationInput,
-  ) {
+  async authentificate(@Body() params: AuthentificationInput) {
     if (!params) {
       return new BadRequestException();
     }
@@ -56,9 +68,21 @@ export class AuthController {
 
   @Post('sign-up')
   @HttpCode(201)
-  async authorization(
-    @Body() params: AuthorizationInput,
-  ) {
+    @ApiResponse({
+    status: 201,
+    description: 'The user has been successfully created',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiBody({
+    type: AuthentificationInput,
+    description: 'Request body',
+  })
+  /**
+   * Authorize a user to access the application
+   * @param params The params of the authorization
+   * @returns The user if created, otherwise throw a BadRequestException
+   */
+  async authorization(@Body() params: AuthorizationInput) {
     if (!params) {
       return new BadRequestException();
     }
@@ -68,17 +92,11 @@ export class AuthController {
     const isUserWIthTheSamePhoneExists =
       await this.userService.checkExistence(params);
 
-      if (isUserWithTheSameEmailExists?.id) {
-      return new NotFoundException('User not found');
-    }
-
-    if (isUserWIthTheSamePhoneExists) {
+    if (isUserWithTheSameEmailExists?.id || isUserWIthTheSamePhoneExists) {
       return new BadRequestException('User already exists');
     }
 
-    const encryptedPassword = this.userService.encryptPassword(
-      params.password
-    );
+    const encryptedPassword = this.userService.encryptPassword(params.password);
 
     const createdUser = await this.userService.createUser({
       ...params,
@@ -93,5 +111,4 @@ export class AuthController {
       return new BadRequestException('User not created');
     }
   }
-
 }

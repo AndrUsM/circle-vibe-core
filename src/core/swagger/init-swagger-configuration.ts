@@ -4,10 +4,9 @@ import { INestApplication } from '@nestjs/common';
 export const initSwaggerConfiguration = (app: INestApplication<any>) => {
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('My API')
-    .setDescription('API documentation for my NestJS app')
+    .setTitle('Circle Vibe Documentation')
+    .setDescription('API documentation')
     .setVersion('1.0')
-    .addTag('users') // Optional tags
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
