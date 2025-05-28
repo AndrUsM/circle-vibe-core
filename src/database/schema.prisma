@@ -101,15 +101,15 @@ model Message {
   createdAt   DateTime?     @default(now())
   updatedAt   DateTime?     @default(now())
   messageType MessageType   @default(TEXT)
-  removed     Boolean
-  hidden      Boolean
+  removed     Boolean       @default(false)
+  hidden      Boolean       @default(false)
 
   chatId      Int
   senderId    Int
   threadId    Int
 
   sender ChatParticipant @relation(fields: [senderId], references: [id])
-  thread Thread?          @relation(fields: [threadId], references: [id])
+  thread Thread?         @relation(fields: [threadId], references: [id])
 }
 
 model Thread {

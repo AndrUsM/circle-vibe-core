@@ -1,13 +1,25 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from 'src/core';
-import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
+import {
+  ChatCreateInputDto,
+  ChatUpdateInputDto,
+} from './dtos';
 
 @Injectable()
 export class ChatService {
   defaultUsersLimit = 100;
 
   constructor(private databaseService: DatabaseService) {}
+
+
+  async findById(chatId: number) {
+    return this.databaseService.chat.findFirstOrThrow({
+      where: {
+        id: chatId
+      }
+    });
+  }
 
   /**
    * Creates a new chat in the database.
@@ -71,10 +83,10 @@ export class ChatService {
    *
    * @returns The updated chat.
    */
-  async update(chatId: string, updateChatDto: ChatUpdateInputDto) {
+  async update(chatId: number, updateChatDto: ChatUpdateInputDto) {
     return this.databaseService.chat.update({
       where: {
-        id: Number(chatId),
+        id: chatId,
       },
       data: {
         ...updateChatDto,
@@ -82,7 +94,48 @@ export class ChatService {
     });
   }
 
+  async softDelete(chatId: number) {
+    return this.databaseService.chat.update({
+      where: {
+        id: chatId,
+      },
+      data: {
+        removed: true,
+        lastMessage: {},
+        lastMessageId: undefined,
+        empty: true,
+        updatedAt: new Date(),
+        isActive: false,
+        hidden: true,
+      },
+    });
+  }
+
+  async delete(chatId: number) {
+    return this.databaseService.chat.delete({
+      where: {
+        id: chatId,
+      },
+    });
+  }
+
+  async getLastMessage(chatId: number) {
+    return this.databaseService.message.findFirstOrThrow({
+      where: {
+        chatId,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+  }
+
   #composeReadableName(name: string): string {
-    return name.split(' ').join('-').toLowerCase();
+    const spaceOrSpecialSymbolRegex = /[\s\W]/g;
+
+    return name
+      .split(spaceOrSpecialSymbolRegex)
+      .join('-')
+      .toLowerCase();
   }
 }
