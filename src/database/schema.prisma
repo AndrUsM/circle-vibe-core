@@ -60,6 +60,13 @@ enum MessageType {
   FILE
 }
 
+enum UserChatStatus {
+  ONLINE
+  BUSY
+  AT_WORK
+  OFFLINE
+}
+
 model MessageFile {
   id          Int                   @id @default(autoincrement())
   fileName    String
@@ -73,23 +80,24 @@ model MessageFile {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
+  id                  Int             @id @default(autoincrement())
   username            String
   surname             String
   birthDate           DateTime?
-  password            String    @unique
+  password            String          @unique
   avatarUrl           String?
-  isHiddenContactInfo Boolean   @default(true)
+  isHiddenContactInfo Boolean         @default(true)
   country             String?
   city                String?
-  email               String    @unique
-  privateKey          String    @unique
-  privateToken        String    @unique
-  primaryPhone        String?   @unique
-  type                UserType  @default(PRIVATE)
-  role                UserRole  @default(USER)
-  createdAt           DateTime? @default(now())
-  updatedAt           DateTime? @default(now())
+  email               String          @unique
+  privateKey          String          @unique
+  privateToken        String          @unique
+  primaryPhone        String?         @unique
+  type                UserType        @default(PRIVATE)
+  role                UserRole        @default(USER)
+  createdAt           DateTime?       @default(now())
+  updatedAt           DateTime?       @default(now())
+  chatStatus          UserChatStatus? @default(OFFLINE)
 }
 
 model Message {
@@ -104,9 +112,9 @@ model Message {
   removed     Boolean       @default(false)
   hidden      Boolean       @default(false)
 
-  chatId      Int
-  senderId    Int
-  threadId    Int
+  chatId   Int
+  senderId Int
+  threadId Int
 
   sender ChatParticipant @relation(fields: [senderId], references: [id])
   thread Thread?         @relation(fields: [threadId], references: [id])
@@ -123,7 +131,7 @@ model Thread {
 }
 
 model ThreadParticipant {
-  id                Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   chatParticipantId Int
   threadId          Int
@@ -153,7 +161,7 @@ model Chat {
   removed             Boolean   @default(false)
 
   lastMessageId Int?
-  lastMessage   Message?  @relation(fields: [lastMessageId], references: [id])
+  lastMessage   Message? @relation(fields: [lastMessageId], references: [id])
 
   Thread Thread[]
 }
@@ -166,5 +174,5 @@ model ChatParticipant {
   chatId Int
 
   Messages Message[]
-  Threads ThreadParticipant[]
+  Threads  ThreadParticipant[]
 }

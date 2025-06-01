@@ -331,10 +331,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@circle-vibe/shared@^1.1.21":
-  version "1.1.21"
-  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.1.21.tgz#90f6f61bd68eae1eaba5794b81bc602af02b2044"
-  integrity sha512-nlK73v922LTogyzQXOWE0nnmi+U8G6KkYfMK7Ze0qdjA3osaqWkuHl7eepxdsj1aW0xCTI6UiqcyRfvrzgJgrQ==
+"@circle-vibe/shared@^1.1.26":
+  version "1.1.26"
+  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.1.26.tgz#fd27b1a87796dc2c912603c2be5b53f394118384"
+  integrity sha512-p36Po50TSk4+15aHeuasH2DIAVWfHBvebRX6K3jZ/EFi+ovtopv4ZQ5Lw98wD23E3l6vbXBrkNUPGgdN6zhkOw==
   dependencies:
     "@coreui/icons" "^3.0.1"
     "@coreui/icons-react" "2.3.0"

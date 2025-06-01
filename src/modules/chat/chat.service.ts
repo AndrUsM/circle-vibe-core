@@ -5,6 +5,8 @@ import {
   ChatCreateInputDto,
   ChatUpdateInputDto,
 } from './dtos';
+import { get } from 'http';
+import { ChatListParams } from './params';
 
 @Injectable()
 export class ChatService {
@@ -90,6 +92,22 @@ export class ChatService {
       },
       data: {
         ...updateChatDto,
+      },
+    });
+  }
+
+  async getById(chatId: number) {
+    return await this.databaseService.chat.findFirstOrThrow({
+      where: {
+        id: chatId,
+      },
+    });
+  }
+
+  async getAll(params: ChatListParams) {
+    return await this.databaseService.chat.findMany({
+      where: {
+        ...params,
       },
     });
   }

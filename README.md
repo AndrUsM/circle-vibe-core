@@ -28,8 +28,23 @@
 ## Project setup
 
 ```bash
+
+# init database
+$ docker compose up -d
+
+#install dependencies
 $ yarn install
+
+# generate prisma types
+$ yarn prisma:generate
+
+add to .env file info
+
 ```
+
+## ENV file fields
+DATABASE_URL="postgresql://nestuser:nestpassword@localhost:5432/circle-vibe-core-db"
+JWT_TOKEN_SECRET=e1203ef4-ba82-44e4-9178-8d6390aff262
 
 ## Compile and run the project
 
@@ -42,6 +57,12 @@ $ yarn run start:dev
 
 # production mode
 $ yarn run start:prod
+
+# generate prisma db types for CLI
+$ yarn prisma:generate
+
+# migrate
+$ yarn prisma:generate
 ```
 
 ## Run tests

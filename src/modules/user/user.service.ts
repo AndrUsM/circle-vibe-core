@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import { DatabaseService } from 'src/core';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDtoInput, GenerateJwtTokenInput } from './dtos';
+import { UserChatStatus } from '@circle-vibe/shared';
 
 // TODO: move to env
 export const JWT_TOKEN_SECRET = process.env.JWT_TOKEN_SECRET ?? 'JWT_TOKEN_SECRET'
@@ -34,6 +35,19 @@ export class UserService {
     });
 
     return (user as User) ?? null;
+  }
+
+  async changeUserChatStatus(userId: number, chatStatus: UserChatStatus): Promise<User> {
+    const user = await this.databaseService.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        chatStatus: chatStatus ?? UserChatStatus.OFFLINE,
+      },
+    })
+
+    return user as User;
   }
 
   encryptPassword(password: string): string {
