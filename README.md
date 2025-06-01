@@ -61,8 +61,8 @@ $ yarn run start:prod
 # generate prisma db types for CLI
 $ yarn prisma:generate
 
-# migrate
-$ yarn prisma:generate
+# migrate changes
+$ yarn prisma:migrate
 ```
 
 ## Run tests
