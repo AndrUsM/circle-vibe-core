@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import randomstring from 'randomstring';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import * as randomstring from 'randomstring';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 
 
 import { DatabaseService } from 'src/core';
@@ -43,7 +43,7 @@ export class UserService {
         id: userId,
       },
       data: {
-        chatStatus: chatStatus ?? UserChatStatus.OFFLINE,
+        chatStatus: chatStatus ?? UserChatStatus.OFFLINE
       },
     })
 
@@ -74,11 +74,7 @@ export class UserService {
 
 
   async matchUserByEmail(email: string): Promise<User | null> {
-    const user = await this.databaseService.user.findFirstOrThrow({
-      where: {
-        email,
-      }
-    });
+    const user = await this.databaseService.user.findUnique({ where: { email } });
 
     return (user as User) ?? null;
   }
@@ -126,9 +122,10 @@ export class UserService {
   };
   const privateKey = this.generatePrivateKey(tokenPayload);
   const privateToken = this.generateRandomToken(tokenPayload);
+  const { passwordConfirmation, ...userWithoutPassword } = user;
 
   return {
-    ...user,
+    ...userWithoutPassword,
     privateKey,
     privateToken,
   } as Omit<User, 'id'>;

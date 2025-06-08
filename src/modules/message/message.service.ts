@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
 import { Message, MessageStatus } from '@circle-vibe/shared';
 import {
@@ -9,6 +8,7 @@ import {
   MessagesPaginatedInputDto,
 } from './dtos';
 import { DatabaseService } from 'src/core';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MessageService {
@@ -80,7 +80,7 @@ export class MessageService {
     const data = files.map((file) => ({
       ...file,
       messageId,
-    })) as Prisma.MessageFileCreateWithoutMessageInput[];
+    }));
 
     this.databaseService.messageFile.createMany({
       data,

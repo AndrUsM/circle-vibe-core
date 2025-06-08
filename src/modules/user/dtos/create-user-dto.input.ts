@@ -1,4 +1,3 @@
-import { UserChatRole } from "@prisma/client";
 import { UserRole, UserType } from "@circle-vibe/shared";
 
 export interface CreateUserDtoInput {

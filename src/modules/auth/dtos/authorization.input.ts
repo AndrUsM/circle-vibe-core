@@ -1,5 +1,5 @@
+import { UserRole, UserType } from "@circle-vibe/shared";
 import { ApiProperty } from "@nestjs/swagger";
-import { UserRole, UserType } from "@prisma/client";
 
 export class AuthorizationInput {
   /**
@@ -60,7 +60,7 @@ export class AuthorizationInput {
     example: 'https://example.com/avatar.jpg',
     required: false,
   })
-  avatar: string;
+  avatar: File;
 
   /**
    * Is user contact info hidden
@@ -172,3 +172,19 @@ export class AuthorizationInput {
   })
   role: UserRole;
 }
+
+
+// {
+//   "username": "Admin",
+//   "surname": "Admin",
+//   "birthDate": "1990-12-12T00:00:00.000Z",
+//   "password": "password123",
+//   "passwordConfirmation": "password123",
+//   "isHiddenContactInfo": true,
+//   "city": "Kiev",
+//   "country": "Ukraine",
+//   "email": "test@example.com",
+//   "primaryPhone": "+79999999999",
+//   "type": "PRIVATE",
+//   "role": "ADMIN"
+// }

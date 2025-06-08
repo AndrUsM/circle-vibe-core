@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
-import {UserRole} from '@circle-vibe/shared';
-import { UserSchema } from "./user.entity";
-import { ChatSchema } from "./chat.entity";
+import { UserRole } from '@circle-vibe/shared';
+import { UserSchema } from './user.entity';
+import { ChatSchema } from './chat.entity';
 
 export const ChatParticipantSchema = z.object({
   id: z.number(),
@@ -12,6 +12,6 @@ export const ChatParticipantSchema = z.object({
   chatId: z.number(),
   chat: ChatSchema,
   chatRole: z.nativeEnum(UserRole).default(UserRole.ADMIN),
-})
+});
 
 export class ChatParticipant extends createZodDto(ChatParticipantSchema) {}

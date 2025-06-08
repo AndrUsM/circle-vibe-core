@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { ChatCreateInputDto, ChatMessagesPaginatedInputDto, ChatUpdateInputDto } from './dtos';
+import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
 import { ApiBody, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 @Controller('chat')
