@@ -4,7 +4,6 @@ import * as randomstring from 'randomstring';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
-
 import { DatabaseService } from 'src/core';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDtoInput, GenerateJwtTokenInput } from './dtos';
@@ -12,7 +11,8 @@ import { UserChatStatus } from '@circle-vibe/shared';
 import { composeUserFromAuthorizationInput } from './utils';
 
 // TODO: move to env
-export const JWT_TOKEN_SECRET = process.env.JWT_TOKEN_SECRET ?? 'JWT_TOKEN_SECRET'
+export const JWT_TOKEN_SECRET =
+  process.env.JWT_TOKEN_SECRET ?? 'JWT_TOKEN_SECRET';
 
 @Injectable()
 export class UserService {
@@ -38,15 +38,18 @@ export class UserService {
     return (user as User) ?? null;
   }
 
-  async changeUserChatStatus(userId: number, chatStatus: UserChatStatus): Promise<User> {
+  async changeUserChatStatus(
+    userId: number,
+    chatStatus: UserChatStatus,
+  ): Promise<User> {
     const user = await this.databaseService.user.update({
       where: {
         id: userId,
       },
       data: {
-        chatStatus: chatStatus ?? UserChatStatus.OFFLINE
+        chatStatus: chatStatus ?? UserChatStatus.OFFLINE,
       },
-    })
+    });
 
     return user as User;
   }
@@ -73,29 +76,31 @@ export class UserService {
     return createdUser as User;
   }
 
-
   async matchUserByEmail(email: string): Promise<User | null> {
-    const user = await this.databaseService.user.findUnique({ where: { email } });
+    const user = await this.databaseService.user.findUnique({
+      where: { email },
+    });
 
     return (user as User) ?? null;
   }
 
-    async checkExistence(user: {
-      email?: string;
-      primaryPhone?: string;
-    }): Promise<boolean> {
+  async checkExistence(user: {
+    email?: string;
+    primaryPhone?: string;
+  }): Promise<boolean> {
     const userWithTheSameEmail = !!user?.email?.length
       ? await this.databaseService.user.findUnique({
-        where:{
-          email: user.email,
-        }})
+          where: {
+            email: user.email,
+          },
+        })
       : null;
 
     const userWithTheSamePrimaryPhone = !!user?.primaryPhone
       ? await this.databaseService.user.findFirst({
           where: {
             primaryPhone: user?.primaryPhone,
-          }
+          },
         })
       : null;
 
@@ -106,52 +111,47 @@ export class UserService {
   }
 
   generatePrivateKey(payload: Record<string, unknown>): string {
-  const secret = randomstring.generate({
-    length: 20,
-    readable: true,
-    charset: "numeric",
-  });
+    const secret = randomstring.generate({
+      length: 20,
+      readable: true,
+      charset: 'numeric',
+    });
 
-  return jwt.sign(payload, secret);
-}
+    return jwt.sign(payload, secret);
+  }
 
-#generateNewUserPayload = (user: CreateUserDtoInput): Omit<User, 'id'> => {
-  const tokenPayload = {
-    username: user.username,
-    surname: user.surname,
-    email: user.email,
+  #generateNewUserPayload = (user: CreateUserDtoInput): Omit<User, 'id'> => {
+    const tokenPayload = {
+      username: user.username,
+      surname: user.surname,
+      email: user.email,
+    };
+    const privateKey = this.generatePrivateKey(tokenPayload);
+    const privateToken = this.generateRandomToken(tokenPayload);
+
+    return {
+      ...composeUserFromAuthorizationInput(user),
+      privateKey,
+      privateToken,
+    } as Omit<User, 'id'>;
   };
-  const privateKey = this.generatePrivateKey(tokenPayload);
-  const privateToken = this.generateRandomToken(tokenPayload);
 
-  return {
-    ...composeUserFromAuthorizationInput(user),
-    privateKey,
-    privateToken,
-  } as Omit<User, 'id'>;
-}
+  generateRandomToken(payload: Record<string, unknown>): string {
+    const secret = randomstring.generate({
+      length: 20,
+      readable: false,
+    });
 
-generateRandomToken(payload: Record<string, unknown>): string {
-  const secret = randomstring.generate({
-    length: 20,
-    readable: false,
-  });
+    return jwt.sign(payload, secret);
+  }
 
-  return jwt.sign(
-    payload,
-    secret
-  );
-}
+  generateJwtToken = ({ id, email, secret }: GenerateJwtTokenInput): string => {
+    return jwt.sign({ _id: id, email }, secret ?? JWT_TOKEN_SECRET, {
+      expiresIn: '1d',
+    });
+  };
 
-generateJwtToken = ({
-  id, email, secret
-}: GenerateJwtTokenInput) : string => {
-  return jwt.sign(
-    { _id: id, email },
-    secret ?? JWT_TOKEN_SECRET,
-    {
-      expiresIn: "1d"
-    }
-  )
-}
+  // uploadAvatar(userId: number, avatar: File) {
+  //   const file =
+  // }
 }
