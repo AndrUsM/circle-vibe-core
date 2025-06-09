@@ -16,7 +16,7 @@ export class ChatService {
 
 
   async findById(chatId: number) {
-    return this.databaseService.chat.findFirstOrThrow({
+    return this.databaseService.chat.findUnique({
       where: {
         id: chatId
       }
@@ -70,7 +70,7 @@ export class ChatService {
    *         an error is thrown.
    */
   async getByReadableName(readableName: string) {
-    return this.databaseService.chat.findFirstOrThrow({
+    return this.databaseService.chat.findUnique({
       where: {
         readableName,
       },
@@ -97,7 +97,7 @@ export class ChatService {
   }
 
   async getById(chatId: number) {
-    return await this.databaseService.chat.findFirstOrThrow({
+    return await this.databaseService.chat.findUnique({
       where: {
         id: chatId,
       },
@@ -138,7 +138,7 @@ export class ChatService {
   }
 
   async getLastMessage(chatId: number) {
-    return this.databaseService.message.findFirstOrThrow({
+    return this.databaseService.message.findFirst({
       where: {
         chatId,
       },

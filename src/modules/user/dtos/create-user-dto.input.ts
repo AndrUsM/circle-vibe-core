@@ -5,6 +5,7 @@ export interface CreateUserDtoInput {
   surname: string;
   birthDate: Date;
   password: string;
+  avatarUrl?: string;
   passwordConfirmation: string;
   isHiddenContactInfo: boolean;
   city: string;

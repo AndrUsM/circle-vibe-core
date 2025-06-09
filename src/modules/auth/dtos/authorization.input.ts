@@ -1,4 +1,4 @@
-import { UserRole, UserType } from "@circle-vibe/shared";
+import { CountryCode, User, UserRole, UserType } from "@circle-vibe/shared";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class AuthorizationInput {
@@ -73,16 +73,6 @@ export class AuthorizationInput {
   isHiddenContactInfo: boolean;
 
   /**
-   * User address
-   * @example Some street, 1
-   */
-  @ApiProperty({
-    example: 'Some street, 1',
-    required: false,
-  })
-  address: string;
-
-  /**
    * User city
    * @example Moscow
    */
@@ -100,27 +90,7 @@ export class AuthorizationInput {
     example: 'Russia',
     required: false,
   })
-  country: string;
-
-  /**
-   * User zip code
-   * @example 123456
-   */
-  @ApiProperty({
-    example: '123456',
-    required: false,
-  })
-  zipCode: string;
-
-  /**
-   * User phones
-   * @example +79999999999
-   */
-  @ApiProperty({
-    example: '+79999999999',
-    required: false,
-  })
-  phones: string[];
+  country: CountryCode;
 
   /**
    * User email
@@ -153,16 +123,6 @@ export class AuthorizationInput {
   type: UserType;
 
   /**
-   * Is user secret
-   * @example false
-   */
-  @ApiProperty({
-    example: false,
-    required: false,
-  })
-  secret: boolean;
-
-  /**
    * User role
    * @example ADMIN
    */
@@ -172,19 +132,3 @@ export class AuthorizationInput {
   })
   role: UserRole;
 }
-
-
-// {
-//   "username": "Admin",
-//   "surname": "Admin",
-//   "birthDate": "1990-12-12T00:00:00.000Z",
-//   "password": "password123",
-//   "passwordConfirmation": "password123",
-//   "isHiddenContactInfo": true,
-//   "city": "Kiev",
-//   "country": "Ukraine",
-//   "email": "test@example.com",
-//   "primaryPhone": "+79999999999",
-//   "type": "PRIVATE",
-//   "role": "ADMIN"
-// }

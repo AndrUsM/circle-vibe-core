@@ -9,6 +9,7 @@ import { DatabaseService } from 'src/core';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDtoInput, GenerateJwtTokenInput } from './dtos';
 import { UserChatStatus } from '@circle-vibe/shared';
+import { composeUserFromAuthorizationInput } from './utils';
 
 // TODO: move to env
 export const JWT_TOKEN_SECRET = process.env.JWT_TOKEN_SECRET ?? 'JWT_TOKEN_SECRET'
@@ -18,7 +19,7 @@ export class UserService {
   constructor(private databaseService: DatabaseService) {}
 
   async matchUserByPersonalToken(privateKey: string): Promise<User | null> {
-    const user = await this.databaseService.user.findFirstOrThrow({
+    const user = await this.databaseService.user.findUnique({
       where: {
         privateKey,
       },
@@ -28,7 +29,7 @@ export class UserService {
   }
 
   async matchUserByPersonalKey(privateKey: string): Promise<User | null> {
-    const user = await this.databaseService.user.findFirstOrThrow({
+    const user = await this.databaseService.user.findUnique({
       where: {
         privateKey,
       },
@@ -84,7 +85,7 @@ export class UserService {
       primaryPhone?: string;
     }): Promise<boolean> {
     const userWithTheSameEmail = !!user?.email?.length
-      ? await this.databaseService.user.findFirst({
+      ? await this.databaseService.user.findUnique({
         where:{
           email: user.email,
         }})
@@ -122,10 +123,9 @@ export class UserService {
   };
   const privateKey = this.generatePrivateKey(tokenPayload);
   const privateToken = this.generateRandomToken(tokenPayload);
-  const { passwordConfirmation, ...userWithoutPassword } = user;
 
   return {
-    ...userWithoutPassword,
+    ...composeUserFromAuthorizationInput(user),
     privateKey,
     privateToken,
   } as Omit<User, 'id'>;

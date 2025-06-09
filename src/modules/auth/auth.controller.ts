@@ -14,6 +14,7 @@ import { UserService } from '../user/user.service';
 import { AuthentificationInput } from './dtos';
 import { AuthorizationInput } from './dtos/authorization.input';
 import { AuthService } from './auth.service';
+import { comparePasswords, composeUserFromAuthorizationInput } from './utils';
 
 @Controller('auth')
 export class AuthController {
@@ -40,7 +41,7 @@ export class AuthController {
    * @returns The user if found, otherwise throw a NotFoundException
    */
   async authentificate(@Body() params: AuthentificationInput) {
-    if (!params) {
+    if (!params || !Object.values(params).length) {
       return new BadRequestException();
     }
 
@@ -83,7 +84,7 @@ export class AuthController {
    * @returns The user if created, otherwise throw a BadRequestException
    */
   async authorization(@Body() params: AuthorizationInput) {
-    if (!params) {
+    if (!params || !Object.values(params).length) {
       return new BadRequestException();
     }
 
@@ -96,8 +97,11 @@ export class AuthController {
       return new BadRequestException('User already exists');
     }
 
-    const encryptedPassword = this.userService.encryptPassword(params.password);
+    if (!comparePasswords(params)) {
+      return new BadRequestException('Passwords do not match');
+    }
 
+    const encryptedPassword = this.userService.encryptPassword(params.password);
     const createdUser = await this.userService.createUser({
       ...params,
       type: params.type as UserType,

@@ -1,0 +1,31 @@
+import { User } from '@prisma/client';
+import { CreateUserDtoInput } from '../dtos';
+
+type UserDto = Omit<
+  User,
+  | 'id'
+  | 'privateKey'
+  | 'privateToken'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'chatStatus'
+  | 'avatarUrl'
+>;
+
+export const composeUserFromAuthorizationInput = (
+  input: CreateUserDtoInput,
+): UserDto => {
+  return {
+    username: input.username,
+    surname: input.surname,
+    birthDate: input.birthDate,
+    password: input.password,
+    isHiddenContactInfo: input.isHiddenContactInfo,
+    city: input.city,
+    country: input.country,
+    email: input.email,
+    primaryPhone: input.primaryPhone ?? null,
+    type: input.type,
+    role: input.role,
+  };
+};

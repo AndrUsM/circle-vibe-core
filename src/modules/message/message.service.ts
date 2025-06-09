@@ -67,7 +67,7 @@ export class MessageService {
 
     await this.linkFilesToMessage(messagePart.id, params.files ?? []);
 
-    const message = await this.databaseService.message.findFirstOrThrow({
+    const message = await this.databaseService.message.findUnique({
       where:{
         id: messagePart.id
       }
