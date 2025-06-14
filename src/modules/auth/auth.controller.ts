@@ -8,20 +8,34 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
 
-import { UserType, UserRole } from '@circle-vibe/shared';
+import { UserType, UserRole, ChatType } from '@circle-vibe/shared';
 
 import { UserService } from '../user/user.service';
 import { AuthentificationInput } from './dtos';
 import { AuthorizationInput } from './dtos/authorization.input';
 import { AuthService } from './auth.service';
 import { comparePasswords, composeUserFromAuthorizationInput } from './utils';
+import { ChatService } from '../chat';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
+    private chatService: ChatService,
   ) {}
+
+  @Post('start-up')
+  @HttpCode(200)
+  async startUp() {
+    await this.chatService.create({
+      name: 'Saved Messages',
+      hidden: true,
+      description: 'description',
+      type: ChatType.PRIVATE,
+      usersLimit: 1,
+    });
+  }
 
   @Post('sign-in')
   @ApiResponse({
@@ -69,7 +83,7 @@ export class AuthController {
 
   @Post('sign-up')
   @HttpCode(201)
-    @ApiResponse({
+  @ApiResponse({
     status: 201,
     description: 'The user has been successfully created',
   })
