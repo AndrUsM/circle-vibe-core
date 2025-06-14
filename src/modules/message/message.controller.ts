@@ -45,6 +45,7 @@ export class MessageController {
     @Query('limit') limit: number,
   ) {
     const chat = await this.chatService.findById(chatId);
+
     if (this.chatService.findById(chatId) === null) {
       return new NotFoundException();
     }

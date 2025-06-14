@@ -1,4 +1,5 @@
-import { MessageFile, MessageStatus, MessageType } from "@circle-vibe/shared";
+import { MessageFile, MessageType } from "@circle-vibe/shared";
+import { MessageFilesInputDto } from "./message-files-input.dto";
 
 export interface MessageCreateInputDto {
   content: string;
@@ -7,5 +8,5 @@ export interface MessageCreateInputDto {
   threadId?: number;
   hidden: boolean;
   messageType: MessageType;
-  files: MessageFile[];
+  files: MessageFilesInputDto[];
 }

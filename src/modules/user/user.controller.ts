@@ -17,8 +17,7 @@ export class UserController {
     }
 
     await this.userService.uploadAvatar(userId, file);
-    const user = await this.userService.getById(userId);
 
-    return user;
+    return this.userService.getById(userId);
   }
 }
