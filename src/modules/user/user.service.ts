@@ -9,14 +9,13 @@ import { User } from 'src/entities/user.entity';
 import { CreateUserDtoInput, GenerateJwtTokenInput } from './dtos';
 import { UserChatStatus } from '@circle-vibe/shared';
 import { composeUserFromAuthorizationInput } from './utils';
+import { FileService } from 'src/core/services';
+import { JWT_TOKEN_SECRET } from 'src/configuration';
 
-// TODO: move to env
-export const JWT_TOKEN_SECRET =
-  process.env.JWT_TOKEN_SECRET ?? 'JWT_TOKEN_SECRET';
 
 @Injectable()
 export class UserService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(private databaseService: DatabaseService, private fileService: FileService) {}
 
   async matchUserByPersonalToken(privateKey: string): Promise<User | null> {
     const user = await this.databaseService.user.findUnique({
@@ -151,7 +150,27 @@ export class UserService {
     });
   };
 
-  // uploadAvatar(userId: number, avatar: File) {
-  //   const file =
-  // }
+  async uploadAvatar(userId: number, avatar: File): Promise<void> {
+    const file = await this.fileService.uploadImage(avatar);
+
+    this.databaseService.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        avatarUrl: file?.filePath,
+        avatarUrlOptimized: file?.optimisedFilePath,
+      }
+    });
+  }
+
+  async getById(userId: number): Promise<User | null> {
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    return user as User;
+  }
 }

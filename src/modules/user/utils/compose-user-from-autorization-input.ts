@@ -10,6 +10,7 @@ type UserDto = Omit<
   | 'updatedAt'
   | 'chatStatus'
   | 'avatarUrl'
+  | 'avatarUrlOptimized'
 >;
 
 export const composeUserFromAuthorizationInput = (

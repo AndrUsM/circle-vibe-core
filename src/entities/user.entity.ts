@@ -10,6 +10,7 @@ export const UserSchema = z.object({
   birthDate: z.date().optional(),
   password: z.string(),
   avatarUrl: z.string().optional(),
+  avatarUrlOptimized: z.string().optional(),
   isHiddenContactInfo: z.boolean().default(true),
   country: z.string().optional(),
   city: z.string().optional(),

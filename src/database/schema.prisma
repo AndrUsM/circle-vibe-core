@@ -80,24 +80,25 @@ model MessageFile {
 }
 
 model User {
-  id                  Int             @id @default(autoincrement())
+  id                  Int            @id @default(autoincrement())
   username            String
   surname             String
   birthDate           DateTime?
-  password            String          @unique
+  password            String         @unique
   avatarUrl           String?
-  isHiddenContactInfo Boolean         @default(true)
+  avatarUrlOptimized  String?
+  isHiddenContactInfo Boolean        @default(true)
   country             String?
   city                String?
-  email               String          @unique
-  privateKey          String          @unique
-  privateToken        String          @unique
-  primaryPhone        String?         @unique
-  type                UserType        @default(PRIVATE)
-  role                UserRole        @default(USER)
-  createdAt           DateTime?       @default(now())
-  updatedAt           DateTime?       @default(now())
-  chatStatus          UserChatStatus  @default(OFFLINE)
+  email               String         @unique
+  privateKey          String         @unique
+  privateToken        String         @unique
+  primaryPhone        String?        @unique
+  type                UserType       @default(PRIVATE)
+  role                UserRole       @default(USER)
+  createdAt           DateTime?      @default(now())
+  updatedAt           DateTime?      @default(now())
+  chatStatus          UserChatStatus @default(OFFLINE)
 }
 
 model Message {

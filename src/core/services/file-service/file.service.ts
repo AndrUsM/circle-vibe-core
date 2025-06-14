@@ -1,6 +1,5 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { first, firstValueFrom } from 'rxjs';
 
 import {
   UploadFileOutputDto,
@@ -10,56 +9,46 @@ import {
 
 @Injectable()
 export class FileService {
-  private fileServerUrl = 'http://localhost:3004';
-  private uploadImagesUrl = `${this.fileServerUrl}/api/images/upload`;
-  private uploadVideosUrl = `${this.fileServerUrl}/api/videos/upload`;
-  private uploadFilesUrl = `${this.fileServerUrl}/api/files/upload`;
+  private uploadImagesUrl = 'images/upload';
+  private uploadVideosUrl = 'videos/upload';
+  private uploadFilesUrl = 'files/upload';
 
   constructor(private readonly httpService: HttpService) {}
 
-  async uploadFile(file: File) {
+  async uploadFile(file: File): Promise<UploadFileOutputDto | null> {
     try {
-      const respose = await firstValueFrom(
-        this.httpService.post(this.uploadFilesUrl, {
-          file,
-        })
-      )
+      const respose = await this.httpService.axiosRef.post(
+        this.uploadFilesUrl,
+        { file },
+      );
 
-      return (respose.data as {
-        filePath: string;
-      });
+      return respose.data;
     } catch {
       return null;
     }
   }
 
-    async uploadVideo(video: File) {
+  async uploadVideo(video: File): Promise<UploadVideoOutputDto | null> {
     try {
-      const respose = await firstValueFrom(
-        this.httpService.post(this.uploadVideosUrl, {
-          video,
-        })
-      )
+      const respose = await this.httpService.axiosRef.post(
+        this.uploadVideosUrl,
+        { video},
+      );
 
-      return (respose.data as {
-        filePath: string;
-      });
+      return respose.data;
     } catch {
       return null;
     }
   }
 
-    async uploadImage(image: File) {
+  async uploadImage(image: File): Promise<UploadImageOutputDto | null> {
     try {
-      const respose = await firstValueFrom(
-        this.httpService.post(this.uploadImagesUrl, {
-          image,
-        })
-      )
+      const respose = await this.httpService.axiosRef.post(
+        this.uploadImagesUrl,
+        { image },
+      );
 
-      return (respose.data as {
-        filePath: string;
-      });
+      return respose.data;
     } catch {
       return null;
     }
