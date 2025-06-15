@@ -8,8 +8,8 @@ export class AuthentificationInput {
   password: string;
 
   @ApiProperty({
-    example: '1234567890',
+    example: 'test@example.com',
     required: true,
   })
-  identificationKey: string;
+  email: string;
 }

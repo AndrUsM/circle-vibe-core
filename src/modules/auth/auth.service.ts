@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import jwt, { JwtPayload, sign } from 'jsonwebtoken';
+import { JwtPayload, sign } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 import { isTokenExpired, UserType } from '@circle-vibe/shared';
 
@@ -20,7 +21,7 @@ export class AuthService {
     });
   };
 
-  parseJWT = (token: string, personalToken: string): ParsedJWT => {
+  parseJWT = (token: string, personalToken: string, place?: string): ParsedJWT => {
     const payload = jwt.verify(token, personalToken) as JwtPayload;
     const isExpired =
       Boolean(payload?.exp) && isTokenExpired(Number(payload?.exp));
@@ -31,4 +32,14 @@ export class AuthService {
       isValid: Boolean(payload?.userId) && !isExpired,
     };
   };
+
+  decodeJWT = (token: string): ParsedJWT => {
+    const payload = jwt.decode(token) as JwtPayload;
+
+    return {
+      isExpired: false,
+      userId: payload?.userId ?? null,
+      isValid: true,
+    };
+  }
 }

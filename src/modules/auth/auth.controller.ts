@@ -59,8 +59,8 @@ export class AuthController {
       return new BadRequestException();
     }
 
-    const user = await this.userService.matchUserByPersonalKey(
-      params.identificationKey,
+    const user = await this.userService.matchUserByEmail(
+      params.email,
     );
 
     if (!user) {

@@ -107,7 +107,7 @@ export class ChatService {
   async getAll(params: ChatListParams) {
     return await this.databaseService.chat.findMany({
       where: {
-        ...params,
+        // ...params,
       },
     });
   }

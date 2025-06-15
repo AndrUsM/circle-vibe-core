@@ -19,10 +19,16 @@ import {
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
-import { AuthService, ChatService, MessageService, UserService } from 'src/modules';
+import {
+  AuthService,
+  ChatService,
+  MessageService,
+  UserService,
+} from 'src/modules';
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
+import { MessageStatus, MessageType } from '@prisma/client';
 
-@WebSocketGateway(3002)
+@WebSocketGateway(3002, { cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   userId?: number;
   #dataLimit = 20;
@@ -36,11 +42,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   handleDisconnect(client: any) {
+    console.log('handleDisconnect');
     if (!this.userId) {
       return;
     }
 
-    this.userService.changeUserChatStatus(this.userId, UserChatStatus.OFFLINE)
+    this.userService.changeUserChatStatus(this.userId, UserChatStatus.OFFLINE);
   }
 
   @UseGuards(WsAuthGuard)
@@ -48,7 +55,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = this.#getAuthParams(client);
     this.userId = userId;
 
-    if( userId) {
+    if (userId) {
       this.userService.changeUserChatStatus(userId, UserChatStatus.ONLINE);
     }
   }
@@ -91,6 +98,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: JoinChatSocketParams,
   ) {
+
+
+    /**
+     * TODO: On user join chat, create a new chat participant entity
+     * - check existence,
+     * - if exists, emit messages and chat partifipant entity
+     */
+
     const { chatId, cursor } = params;
     const messagesForChat = await this.messageService.getMessagesByChat(
       chatId,
@@ -100,7 +115,37 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     );
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
+    const messages = [
+      {
+        id: 1,
+        content: 'Hello, world!',
+        status: MessageStatus.UNREAD,
+        chatId: 1,
+        senderId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messageType: MessageType.TEXT,
+        threadId: 1,
+        removed: false,
+        hidden: false,
+      },
+      {
+        id: 2,
+        content: 'Hello, world Again!',
+        status: MessageStatus.UNREAD,
+        chatId: 1,
+        senderId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messageType: MessageType.TEXT,
+        threadId: 1,
+        removed: false,
+        hidden: false,
+      },
+    ];
+
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    // client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
   }
 
   @UseGuards(WsAuthGuard)
@@ -130,7 +175,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   #getAuthParams(socket: Socket) {
-    const { token, personalToken } = (socket.handshake.auth ?? {}) as SocketAuthParams;
+    const { token, personalToken } = (socket.handshake.auth ??
+      {}) as SocketAuthParams;
     const { userId } = this.authService.parseJWT(token, personalToken);
 
     return { userId: userId ?? undefined };

@@ -5,9 +5,11 @@ import { FileServiceModule } from './core/services';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { MessageModule } from './modules/message/message.module';
+import { ChatGatewayModule } from './gateways/chat';
+import { UsersModule } from './modules/user/user.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, FileServiceModule, ChatModule, MessageModule],
+  imports: [DatabaseModule, UsersModule, AuthModule, FileServiceModule, ChatModule, MessageModule, ChatGatewayModule],
   providers: [DatabaseService],
 })
 export class AppModule {}
