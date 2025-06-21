@@ -27,6 +27,7 @@ import {
 } from 'src/modules';
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
 import { MessageStatus, MessageType } from '@prisma/client';
+import { ParticipantService } from 'src/modules/participant/participant.service';
 
 @WebSocketGateway(3002, { cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -38,6 +39,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private chatService: ChatService,
     private authService: AuthService,
     private userService: UserService,
+    private participantService: ParticipantService,
   ) {}
 
   @UseGuards(WsAuthGuard)
@@ -89,7 +91,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ...message,
     });
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, chatId);
+    const messages = await this.messageService.getMessagesByChat(chatId, {
+      limit: this.#dataLimit,
+      cursor: 0,
+    });
+
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
 
   @UseGuards(WsAuthGuard)
@@ -98,8 +105,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: JoinChatSocketParams,
   ) {
-
-
     /**
      * TODO: On user join chat, create a new chat participant entity
      * - check existence,
@@ -107,6 +112,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
      */
 
     const { chatId, cursor } = params;
+
+    const chatParticipant =
+      await this.participantService.getOrCreateChatParticipant({
+        chatId,
+        userId: Number(this.userId),
+      });
+
     const messagesForChat = await this.messageService.getMessagesByChat(
       chatId,
       {
@@ -115,37 +127,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     );
 
-    const messages = [
-      {
-        id: 1,
-        content: 'Hello, world!',
-        status: MessageStatus.UNREAD,
-        chatId: 1,
-        senderId: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        messageType: MessageType.TEXT,
-        threadId: 1,
-        removed: false,
-        hidden: false,
-      },
-      {
-        id: 2,
-        content: 'Hello, world Again!',
-        status: MessageStatus.UNREAD,
-        chatId: 1,
-        senderId: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        messageType: MessageType.TEXT,
-        threadId: 1,
-        removed: false,
-        hidden: false,
-      },
-    ];
-
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
-    // client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
+    client.emit(ChatSocketCommand.JOIN_CHAT, {chatParticipant});
   }
 
   @UseGuards(WsAuthGuard)
@@ -157,6 +140,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const chat = await this.chatService.create({
       ...chatInputDto,
       usersLimit: 100,
+    });
+
+    await this.participantService.getOrCreateChatParticipant({
+      chatId: chat.id,
+      userId: Number(this.userId),
     });
 
     client.emit(ChatSocketCommand.REFRESH_CHATS, chat);

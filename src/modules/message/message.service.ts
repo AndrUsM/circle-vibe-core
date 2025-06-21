@@ -30,7 +30,7 @@ export class MessageService {
     const { limit, cursor } = params;
 
     const query: Prisma.MessageFindManyArgs = {
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
       take: limit,
     };
 
@@ -63,8 +63,8 @@ export class MessageService {
     const messagePart = await this.databaseService.message.create({
       data: {
         ...params,
-        threadId: params.threadId ?? 0,
-        status: MessageStatus.DRAFT,
+        threadId: params.threadId ?? null,
+        status: MessageStatus.UNREAD,
         removed: false,
         files: {
           create: [],

@@ -89,7 +89,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiBody({
-    type: AuthentificationInput,
+    type: AuthorizationInput,
     description: 'Request body',
   })
   /**
@@ -122,6 +122,8 @@ export class AuthController {
       role: params.role as UserRole,
       password: encryptedPassword,
     });
+
+    await this.startUp();
 
     if (createdUser?.id) {
       return createdUser;

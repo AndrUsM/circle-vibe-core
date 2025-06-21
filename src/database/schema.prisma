@@ -115,7 +115,7 @@ model Message {
 
   chatId   Int
   senderId Int
-  threadId Int
+  threadId Int?
 
   sender ChatParticipant @relation(fields: [senderId], references: [id])
   thread Thread?         @relation(fields: [threadId], references: [id])
@@ -148,7 +148,7 @@ model Chat {
   avatarUrl           String?
   hidden              Boolean   @default(false)
   isActive            Boolean   @default(true)
-  name                String    @unique
+  name                String
   readableName        String    @unique
   description         String?
   type                ChatType  @default(PUBLIC)

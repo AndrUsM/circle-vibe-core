@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from 'src/core';
-import {
-  ChatCreateInputDto,
-  ChatUpdateInputDto,
-} from './dtos';
+import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
 import { get } from 'http';
 import { ChatListParams } from './params';
+import { Message } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -14,12 +12,11 @@ export class ChatService {
 
   constructor(private databaseService: DatabaseService) {}
 
-
   async findById(chatId: number) {
     return this.databaseService.chat.findUnique({
       where: {
-        id: chatId
-      }
+        id: chatId,
+      },
     });
   }
 
@@ -105,11 +102,36 @@ export class ChatService {
   }
 
   async getAll(params: ChatListParams) {
-    return await this.databaseService.chat.findMany({
+    const chats = await this.databaseService.chat.findMany({
       where: {
         // ...params,
       },
     });
+
+    const chatIds = chats.map(({ id }) => Number(id));
+
+    const lastMessages = await this.databaseService.$queryRawUnsafe<Message[]>(`
+      SELECT DISTINCT ON ("chatId") *
+      FROM "Message" m
+      WHERE m."createdAt" = (
+        SELECT MAX(m2."createdAt")
+        FROM "Message" m2
+        WHERE m2."chatId" = m."chatId"
+      )
+      AND m."chatId" IN (${chatIds});
+    `, chatIds);
+
+    return chats.map((chat) => {
+      const lastMessage = lastMessages.find(
+        (message) => message.chatId === chat.id,
+      );
+
+      return {
+      ...chat,
+      empty: !lastMessage,
+      lastMessageId: lastMessage?.id,
+      lastMessage,
+    }});
   }
 
   async softDelete(chatId: number) {
@@ -151,9 +173,6 @@ export class ChatService {
   #composeReadableName(name: string): string {
     const spaceOrSpecialSymbolRegex = /[\s\W]/g;
 
-    return name
-      .split(spaceOrSpecialSymbolRegex)
-      .join('-')
-      .toLowerCase();
+    return name.split(spaceOrSpecialSymbolRegex).join('-').toLowerCase();
   }
 }
