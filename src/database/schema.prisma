@@ -19,6 +19,7 @@ enum MessageFileType {
   OGG
   WEBM
   AVI
+  IMAGE
   DOCUMENT
   MS_DOCUMENT
 }
@@ -68,12 +69,13 @@ enum UserChatStatus {
 }
 
 model MessageFile {
-  id          Int                   @id @default(autoincrement())
-  fileName    String
-  url         String
-  type        MessageFileType
-  description String?
-  entityType  MessageFileEntityType @default(FILE)
+  id           Int                   @id @default(autoincrement())
+  fileName     String
+  url          String
+  optimizedUrl String
+  type         MessageFileType
+  description  String?
+  entityType   MessageFileEntityType @default(FILE)
 
   messageId Int
   Message   Message[]

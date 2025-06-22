@@ -1,20 +1,28 @@
 import { Injectable } from '@nestjs/common';
 
-import { Message, MessageStatus } from '@circle-vibe/shared';
+import { Message, MessageStatus, MessageType } from '@circle-vibe/shared';
 import {
   MessageCreateInputDto,
   MessageFilesInputDto,
+  MessageFileVideoCreateDto,
   MessagePaginatedDto,
   MessagesPaginatedInputDto,
+  UploadFileMetaInputDto,
 } from './dtos';
 import { DatabaseService } from 'src/core';
-import { MessageFile, MessageFileEntityType, Prisma } from '@prisma/client';
+import {
+  MessageFile,
+  MessageFileEntityType,
+  MessageFileType,
+  Prisma,
+} from '@prisma/client';
 import {
   UploadFileOutputDto,
   UploadImageOutputDto,
   UploadVideoOutputDto,
 } from 'src/core/services/file-service/dtos';
 import { FileService } from 'src/core/services';
+import { MessageFileCreateInputDto } from './dtos/message-file-create.dto';
 
 @Injectable()
 export class MessageService {
@@ -32,6 +40,7 @@ export class MessageService {
     const query: Prisma.MessageFindManyArgs = {
       orderBy: { createdAt: 'asc' },
       take: limit,
+      include: { files: true },
     };
 
     if (cursor) {
@@ -60,10 +69,14 @@ export class MessageService {
   }
 
   async create(params: MessageCreateInputDto) {
-    const messagePart = await this.databaseService.message.create({
+    return this.databaseService.message.create({
       data: {
-        ...params,
+        content: params.content,
+        chatId: params.chatId,
+        senderId: params.senderId,
         threadId: params.threadId ?? null,
+        hidden: false,
+        messageType: params.messageType,
         status: MessageStatus.UNREAD,
         removed: false,
         files: {
@@ -71,12 +84,29 @@ export class MessageService {
         },
       },
     });
+  }
 
+  async createFileVideoMessage(
+    messageFileVideoCreatDto: MessageFileVideoCreateDto,
+  ) {
+    const { fileUrl, fileMeta, optimizedUrl, ...payload } =
+      messageFileVideoCreatDto;
+    const messagePart = await this.create({
+      ...payload,
+      files: [],
+      messageType: MessageType.VIDEO,
+    });
     const messageId = messagePart.id;
-
-    const files = params.files?.length
-      ? await this.#uploadFiles(params.files, messageId)
-      : [];
+    const uploadedFile = {
+      entityType: fileMeta?.entityType ?? MessageFileEntityType.VIDEO,
+      fileName: fileMeta.fileName,
+      description: fileMeta.description ?? '',
+      type: MessageFileType.MP4,
+      url: fileUrl,
+      // @ts-ignore
+      optimizedUrl: fileUrl,
+      messageId,
+    };
 
     await this.databaseService.message.update({
       where: {
@@ -84,29 +114,75 @@ export class MessageService {
       },
       data: {
         files: {
-          create: files,
+          create: [
+            uploadedFile
+          ],
         },
       },
     });
 
-    await this.linkFilesToMessage(messageId, params.files ?? []);
+    await this.linkFileToMessage(messageId, uploadedFile);
 
-    const message = await this.databaseService.message.findUnique({
+    return this.databaseService.message.findUnique({
       where: {
         id: messageId,
       },
     });
-
-    return message;
   }
 
-  async linkFilesToMessage(messageId: number, files: MessageFilesInputDto[]) {
-    const data = files.map((file) => ({
+  async createFileMessage(file: File, payload: MessageFileCreateInputDto) {
+    const { fileMeta, ...params } = payload;
+    const messagePart = await this.create({
+      ...params,
+      files: [],
+    });
+
+    const messageId = messagePart.id;
+    const uploadedFile = file
+      ? await this.#uploadFile(file, fileMeta, messageId)
+      : null;
+
+    if (!uploadedFile) {
+      throw new Error('File not uploaded');
+    }
+
+    await this.databaseService.message.update({
+      where: {
+        id: messageId,
+      },
+      data: {
+        files: {
+          create: uploadedFile
+            ? [
+                {
+                  ...uploadedFile,
+                  type: MessageFileType.DOCUMENT,
+                },
+              ]
+            : [],
+        },
+      },
+    });
+
+    await this.linkFileToMessage(messageId, uploadedFile);
+
+    return this.databaseService.message.findUnique({
+      where: {
+        id: messageId,
+      },
+    });
+  }
+
+  async linkFileToMessage(
+    messageId: number,
+    file: Omit<MessageFile, 'id' | 'messageId'>,
+  ) {
+    const data: Prisma.MessageFileCreateInput = {
       ...file,
       messageId,
-    }));
+    };
 
-    this.databaseService.messageFile.createMany({
+    this.databaseService.messageFile.create({
       data,
     });
   }
@@ -116,6 +192,7 @@ export class MessageService {
     messageId: number,
   ) {
     const { entityType, file } = messageFilesInputDto;
+
     if (entityType === MessageFileEntityType.FILE) {
       const response = (await this.fileService.uploadFile(
         file,
@@ -163,9 +240,12 @@ export class MessageService {
   ) {
     const { fileName, description, type, entityType } = messageFilesInputDto;
     const { filePath } = outputDto;
+    const optimisedFilePath = (outputDto as UploadVideoOutputDto)
+      ?.optimisedFilePath;
 
     return {
       url: filePath,
+      optimizedUrl: optimisedFilePath ?? '',
       fileName,
       description,
       type,
@@ -174,22 +254,26 @@ export class MessageService {
     };
   }
 
-  async #uploadFiles(
-    files: MessageFilesInputDto[],
+  async #uploadFile(
+    file: File,
+    fileMeta: UploadFileMetaInputDto,
     messageId: number,
-  ): Promise<Omit<MessageFile, 'id'>[]> {
-    return Promise.all(
-      files.map(async (payload) => {
-        const response = await this.uploadFileByEntityType(
-          {
-            ...payload,
-            entityType: payload?.entityType ?? MessageFileEntityType.FILE,
-          },
-          messageId,
-        );
-
-        return response as Omit<MessageFile, 'id'>;
-      }),
+  ): Promise<Omit<MessageFile, 'id'>> {
+    const response = await this.uploadFileByEntityType(
+      {
+        ...fileMeta,
+        file: new File([file], fileMeta.fileName, {
+          type: fileMeta.fileType,
+        }),
+        entityType: fileMeta?.entityType ?? MessageFileEntityType.FILE,
+        fileName: fileMeta.fileName,
+        description: fileMeta.description ?? '',
+        url: '',
+        type: fileMeta.type as MessageFileType,
+      },
+      messageId,
     );
+
+    return response as Omit<MessageFile, 'id'>;
   }
 }

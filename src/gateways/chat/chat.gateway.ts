@@ -13,6 +13,7 @@ import {
   ChatSocketCommand,
   CreateChatSocketParams,
   JoinChatSocketParams,
+  Message,
   RefreshChatsSocketParams,
   SendMessageSocketParams,
   UserChatStatus,
@@ -28,11 +29,24 @@ import {
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
 import { MessageStatus, MessageType } from '@prisma/client';
 import { ParticipantService } from 'src/modules/participant/participant.service';
+import { UploadFileOutputDto } from 'src/core/services/file-service/dtos';
+import { MessageFileCreateInputDto } from 'src/modules/message/dtos/message-file-create.dto';
+import { io } from 'socket.io-client';
+import { MessageFileVideoCreateDto } from 'src/modules/message/dtos';
+
+interface SendFileMessageSocketParams {
+  chatId: number;
+  message: MessageFileCreateInputDto;
+  file: File;
+}
 
 @WebSocketGateway(3002, { cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   userId?: number;
   #dataLimit = 20;
+
+  #fileServerSocketUrl = 'http://localhost:3005/api';
+  fileServerSocket = io(this.#fileServerSocketUrl);
 
   constructor(
     private messageService: MessageService,
@@ -79,17 +93,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(WsAuthGuard)
+  @SubscribeMessage('SEND_VIDEO_FILE_MESSAGE')
+  async handleSendVideoFile(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: MessageFileVideoCreateDto,
+  ) {
+    const chatId = data.chatId;
+
+    await this.messageService.createFileVideoMessage(data);
+
+    const messages = await this.messageService.getMessagesByChat(chatId, {
+      limit: this.#dataLimit,
+      cursor: 0,
+    });
+
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+  }
+
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.SEND_MESSAGE)
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: SendMessageSocketParams,
+    @MessageBody() data: Message,
   ) {
-    const { chatId, message } = data;
+    const chatId = data.chatId;
+    const message = data;
 
     await this.messageService.create({
-      chatId,
       ...message,
+      files: [],
     });
+
+    const messages = await this.messageService.getMessagesByChat(chatId, {
+      limit: this.#dataLimit,
+      cursor: 0,
+    });
+
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('SEND_FILE_MESSAGE')
+  async handleSendFile(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: SendFileMessageSocketParams,
+  ) {
+    console.log(params);
+    const { file, message } = params;
+    const { chatId } = message;
+
+    await this.messageService.createFileMessage(file, message);
 
     const messages = await this.messageService.getMessagesByChat(chatId, {
       limit: this.#dataLimit,
@@ -128,7 +181,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
-    client.emit(ChatSocketCommand.JOIN_CHAT, {chatParticipant});
+    client.emit(ChatSocketCommand.JOIN_CHAT, { chatParticipant });
   }
 
   @UseGuards(WsAuthGuard)
@@ -168,5 +221,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = this.authService.parseJWT(token, personalToken);
 
     return { userId: userId ?? undefined };
+  }
+
+  @SubscribeMessage('UPLOAD_VIDEO_CHUNK')
+  handleChunk(@MessageBody() chunk: Buffer) {
+    this.fileServerSocket.emit('UPLOAD_VIDEO_CHUNK', chunk); // Forward to file server
+  }
+
+  @SubscribeMessage('UPLOAD_VIDEO_END')
+  handleUploadEnd() {
+    this.fileServerSocket.emit('UPLOAD_VIDEO_END');
   }
 }

@@ -173,6 +173,6 @@ export class ChatService {
   #composeReadableName(name: string): string {
     const spaceOrSpecialSymbolRegex = /[\s\W]/g;
 
-    return name.split(spaceOrSpecialSymbolRegex).join('-').toLowerCase();
+    return [name.split(spaceOrSpecialSymbolRegex), Date.now()].join('-').toLowerCase();
   }
 }
