@@ -103,7 +103,7 @@ export class MessageService {
       description: fileMeta.description ?? '',
       type: MessageFileType.MP4,
       url: fileUrl,
-      // @ts-ignore
+
       optimizedUrl: fileUrl,
       messageId,
     };
@@ -114,9 +114,7 @@ export class MessageService {
       },
       data: {
         files: {
-          create: [
-            uploadedFile
-          ],
+          create: [uploadedFile],
         },
       },
     });
