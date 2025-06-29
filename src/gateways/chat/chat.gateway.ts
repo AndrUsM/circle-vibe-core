@@ -7,16 +7,20 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
+import { io } from 'socket.io-client';
 
 import {
-  Chat,
   ChatSocketCommand,
   CreateChatSocketParams,
   JoinChatSocketParams,
-  Message,
   RefreshChatsSocketParams,
   SendMessageSocketParams,
   UserChatStatus,
+  FileVideoServerSocketKeys,
+  GatewayNamespaces,
+  // SendFileMessageChatSocketParams,
+  SendFileMessageMetaInput,
+  MessageType,
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
@@ -27,26 +31,32 @@ import {
   UserService,
 } from 'src/modules';
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
-import { MessageStatus, MessageType } from '@prisma/client';
 import { ParticipantService } from 'src/modules/participant/participant.service';
-import { UploadFileOutputDto } from 'src/core/services/file-service/dtos';
-import { MessageFileCreateInputDto } from 'src/modules/message/dtos/message-file-create.dto';
-import { io } from 'socket.io-client';
 import { MessageFileVideoCreateDto } from 'src/modules/message/dtos';
+import { MessageFileCreateInputDto } from 'src/modules/message/dtos/message-file-create.dto';
 
-interface SendFileMessageSocketParams {
+export interface SendFileMessageChatSocketParams {
+  content: string;
   chatId: number;
-  message: MessageFileCreateInputDto;
-  file: File;
+  senderId: number;
+  threadId?: number;
+  hidden: boolean;
+  messageType: MessageType;
+  fileUrl: string;
+  optimizedUrl: string;
+  fileMeta: SendFileMessageMetaInput;
 }
 
-@WebSocketGateway(3002, { cors: true })
+@WebSocketGateway(3002, {
+  cors: true,
+  namespace: `/${GatewayNamespaces.CHAT_MAIN}`,
+})
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   userId?: number;
   #dataLimit = 20;
 
-  #fileServerSocketUrl = 'http://localhost:3005/api';
-  fileServerSocket = io(this.#fileServerSocketUrl);
+  #fileVideoServerSocketUrl = `http://localhost:3005/api/${GatewayNamespaces.VIDEO_UPLOAD}`;
+  fileVideoServerSocket = io(this.#fileVideoServerSocketUrl);
 
   constructor(
     private messageService: MessageService,
@@ -93,7 +103,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(WsAuthGuard)
-  @SubscribeMessage('SEND_VIDEO_FILE_MESSAGE')
+  @SubscribeMessage(ChatSocketCommand.SEND_VIDEO_FILE_MESSAGE)
   async handleSendVideoFile(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: MessageFileVideoCreateDto,
@@ -114,7 +124,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(ChatSocketCommand.SEND_MESSAGE)
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: Message,
+    @MessageBody() data: SendMessageSocketParams,
   ) {
     const chatId = data.chatId;
     const message = data;
@@ -133,16 +143,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(WsAuthGuard)
-  @SubscribeMessage('SEND_FILE_MESSAGE')
+  @SubscribeMessage(ChatSocketCommand.SEND_FILE_MESSAGE)
   async handleSendFile(
     @ConnectedSocket() client: Socket,
-    @MessageBody() params: SendFileMessageSocketParams,
+    @MessageBody() params: SendFileMessageChatSocketParams,
   ) {
-    console.log(params);
-    const { file, message } = params;
-    const { chatId } = message;
+    const { chatId } = params;
 
-    await this.messageService.createFileMessage(file, message);
+    await this.messageService.createFileMessage(params);
 
     const messages = await this.messageService.getMessagesByChat(chatId, {
       limit: this.#dataLimit,
@@ -158,14 +166,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: JoinChatSocketParams,
   ) {
-    /**
-     * TODO: On user join chat, create a new chat participant entity
-     * - check existence,
-     * - if exists, emit messages and chat partifipant entity
-     */
-
     const { chatId, cursor } = params;
-
     const chatParticipant =
       await this.participantService.getOrCreateChatParticipant({
         chatId,
@@ -223,13 +224,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { userId: userId ?? undefined };
   }
 
-  @SubscribeMessage('UPLOAD_VIDEO_CHUNK')
+  @SubscribeMessage(FileVideoServerSocketKeys.UPLOAD_VIDEO_CHUNK)
   handleChunk(@MessageBody() chunk: Buffer) {
-    this.fileServerSocket.emit('UPLOAD_VIDEO_CHUNK', chunk); // Forward to file server
+    this.fileVideoServerSocket.emit(
+      FileVideoServerSocketKeys.UPLOAD_VIDEO_CHUNK,
+      chunk,
+    ); // Forward to file server
   }
 
-  @SubscribeMessage('UPLOAD_VIDEO_END')
+  @SubscribeMessage(FileVideoServerSocketKeys.UPLOAD_VIDEO_END)
   handleUploadEnd() {
-    this.fileServerSocket.emit('UPLOAD_VIDEO_END');
+    this.fileVideoServerSocket.emit(FileVideoServerSocketKeys.UPLOAD_VIDEO_END);
   }
 }

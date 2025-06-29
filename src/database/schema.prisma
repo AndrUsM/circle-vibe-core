@@ -104,16 +104,17 @@ model User {
 }
 
 model Message {
-  id          Int           @id @default(autoincrement())
-  content     String
-  files       MessageFile[]
-  status      MessageStatus @default(UNREAD)
-  Chat        Chat[]
-  createdAt   DateTime?     @default(now())
-  updatedAt   DateTime?     @default(now())
-  messageType MessageType   @default(TEXT)
-  removed     Boolean       @default(false)
-  hidden      Boolean       @default(false)
+  id              Int           @id @default(autoincrement())
+  content         String
+  files           MessageFile[]
+  status          MessageStatus @default(UNREAD)
+  Chat            Chat[]
+  createdAt       DateTime?     @default(now())
+  updatedAt       DateTime?     @default(now())
+  messageType     MessageType   @default(TEXT)
+  removed         Boolean       @default(false)
+  hidden          Boolean       @default(false)
+  isSavedMessages Boolean?      @default(false)
 
   chatId   Int
   senderId Int

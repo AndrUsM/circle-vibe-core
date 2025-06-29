@@ -23,6 +23,7 @@ import {
 } from 'src/core/services/file-service/dtos';
 import { FileService } from 'src/core/services';
 import { MessageFileCreateInputDto } from './dtos/message-file-create.dto';
+import { SendFileMessageChatSocketParams } from 'src/gateways/chat/chat.gateway';
 
 @Injectable()
 export class MessageService {
@@ -103,7 +104,6 @@ export class MessageService {
       description: fileMeta.description ?? '',
       type: MessageFileType.MP4,
       url: fileUrl,
-
       optimizedUrl: fileUrl,
       messageId,
     };
@@ -128,21 +128,22 @@ export class MessageService {
     });
   }
 
-  async createFileMessage(file: File, payload: MessageFileCreateInputDto) {
-    const { fileMeta, ...params } = payload;
+  async createFileMessage(payload: SendFileMessageChatSocketParams) {
+    const {fileUrl, fileMeta, optimizedUrl, ...params} = payload;
     const messagePart = await this.create({
       ...params,
       files: [],
     });
-
     const messageId = messagePart.id;
-    const uploadedFile = file
-      ? await this.#uploadFile(file, fileMeta, messageId)
-      : null;
-
-    if (!uploadedFile) {
-      throw new Error('File not uploaded');
-    }
+    const uploadedFile = {
+      entityType: fileMeta?.entityType ?? MessageFileEntityType.FILE,
+      fileName: fileMeta.fileName,
+      description: fileMeta.description ?? '',
+      type: fileMeta.type,
+      url: fileUrl,
+      optimizedUrl: fileUrl,
+      messageId,
+    };
 
     await this.databaseService.message.update({
       where: {
@@ -150,14 +151,7 @@ export class MessageService {
       },
       data: {
         files: {
-          create: uploadedFile
-            ? [
-                {
-                  ...uploadedFile,
-                  type: MessageFileType.DOCUMENT,
-                },
-              ]
-            : [],
+          create: [uploadedFile],
         },
       },
     });

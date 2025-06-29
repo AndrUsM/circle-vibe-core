@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from 'src/core';
 import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
-import { get } from 'http';
 import { ChatListParams } from './params';
 import { Message } from '@prisma/client';
 
@@ -114,7 +113,8 @@ export class ChatService {
       SELECT DISTINCT ON ("chatId") *
       FROM "Message" m
       WHERE m."createdAt" = (
-        SELECT MAX(m2."createdAt")
+        SELECT MAX(m2."createdAt"),
+          (SELECT fileName, entityType FROM "MessageFile" mf WHERE mf."messageId" = m2."id")
         FROM "Message" m2
         WHERE m2."chatId" = m."chatId"
       )
@@ -129,6 +129,8 @@ export class ChatService {
       return {
       ...chat,
       empty: !lastMessage,
+      // @ts-ignore
+      filesShort: lastMessage.files.map(({ fileName }) => fileName),
       lastMessageId: lastMessage?.id,
       lastMessage,
     }});

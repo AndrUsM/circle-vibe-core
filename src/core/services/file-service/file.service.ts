@@ -1,7 +1,5 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { io } from 'socket.io-client';
-import * as fs from 'fs';
 
 import {
   UploadFileOutputDto,
@@ -35,7 +33,7 @@ export class FileService {
 
   async uploadVideo(video: File): Promise<UploadVideoOutputDto | null> {
     const payload = new FormData();
-    payload.append('test', video);
+    payload.append('video', video);
 
     try {
       const respose = await this.httpService.axiosRef.post(
@@ -51,6 +49,7 @@ export class FileService {
 
   async uploadImage(image: File): Promise<UploadImageOutputDto | null> {
     const payload = new FormData();
+    payload.append('image', image);
 
     try {
       const respose = await this.httpService.axiosRef.post(

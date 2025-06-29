@@ -1,6 +1,6 @@
 {
   "name": "circle-vibe-core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "author": "",
   "private": true,
@@ -24,7 +24,7 @@
     "prisma:studio": "prisma studio --schema=src/database/schema.prisma"
   },
   "dependencies": {
-    "@circle-vibe/shared": "^1.1.27",
+    "@circle-vibe/shared": "^1.1.46",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",

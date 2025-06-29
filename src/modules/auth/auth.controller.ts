@@ -14,7 +14,7 @@ import { UserService } from '../user/user.service';
 import { AuthentificationInput } from './dtos';
 import { AuthorizationInput } from './dtos/authorization.input';
 import { AuthService } from './auth.service';
-import { comparePasswords, composeUserFromAuthorizationInput } from './utils';
+import { comparePasswords } from './utils';
 import { ChatService } from '../chat';
 
 @Controller('auth')
@@ -31,6 +31,7 @@ export class AuthController {
     await this.chatService.create({
       name: 'Saved Messages',
       hidden: true,
+      isSavedMessages: true,
       description: 'description',
       type: ChatType.PRIVATE,
       usersLimit: 1,

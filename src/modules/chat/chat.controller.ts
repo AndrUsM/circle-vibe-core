@@ -1,12 +1,10 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   NotFoundException,
   Param,
   Put,
-  Query,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
