@@ -19,6 +19,7 @@ export const MessageSchema = z.object({
   threadId: z.number(),
   removed: z.boolean(),
   hidden: z.boolean(),
+  isSavedMessages: z.boolean().default(false),
 })
 
 export class Message extends createZodDto(MessageSchema) {}

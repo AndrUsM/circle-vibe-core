@@ -31,10 +31,11 @@ export class AuthController {
     await this.chatService.create({
       name: 'Saved Messages',
       hidden: true,
-      isSavedMessages: true,
       description: 'description',
       type: ChatType.PRIVATE,
       usersLimit: 1,
+    }, {
+      isSavedMessages: true,
     });
   }
 

@@ -101,20 +101,21 @@ model User {
   createdAt           DateTime?      @default(now())
   updatedAt           DateTime?      @default(now())
   chatStatus          UserChatStatus @default(OFFLINE)
+
+  chatParticipants ChatParticipant[]
 }
 
 model Message {
-  id              Int           @id @default(autoincrement())
-  content         String
-  files           MessageFile[]
-  status          MessageStatus @default(UNREAD)
-  Chat            Chat[]
-  createdAt       DateTime?     @default(now())
-  updatedAt       DateTime?     @default(now())
-  messageType     MessageType   @default(TEXT)
-  removed         Boolean       @default(false)
-  hidden          Boolean       @default(false)
-  isSavedMessages Boolean?      @default(false)
+  id          Int           @id @default(autoincrement())
+  content     String
+  files       MessageFile[]
+  status      MessageStatus @default(UNREAD)
+  Chat        Chat[]
+  createdAt   DateTime?     @default(now())
+  updatedAt   DateTime?     @default(now())
+  messageType MessageType   @default(TEXT)
+  removed     Boolean       @default(false)
+  hidden      Boolean       @default(false)
 
   chatId   Int
   senderId Int
@@ -156,6 +157,7 @@ model Chat {
   description         String?
   type                ChatType  @default(PUBLIC)
   isGroupChat         Boolean   @default(false)
+  isSavedMessages     Boolean?  @default(false)
   createdAt           DateTime? @default(now())
   updatedAt           DateTime? @default(now())
   hasUnreadMessages   Boolean?  @default(false)
@@ -174,9 +176,10 @@ model ChatParticipant {
   id       Int          @id @default(autoincrement())
   chatRole UserChatRole @default(ADMIN)
 
-  userId Int
+  userId Int @unique
   chatId Int
 
-  Messages Message[]
-  Threads  ThreadParticipant[]
+  messages Message[]
+  threads  ThreadParticipant[]
+  user     User                @relation(fields: [userId], references: [id])
 }

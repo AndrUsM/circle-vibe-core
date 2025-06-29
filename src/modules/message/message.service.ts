@@ -41,7 +41,21 @@ export class MessageService {
     const query: Prisma.MessageFindManyArgs = {
       orderBy: { createdAt: 'asc' },
       take: limit,
-      include: { files: true },
+      include: {
+        files: true,
+        sender: {
+          include: {
+            // @ts-ignore
+            user: true,
+          }
+        },
+        thread: true,
+      },
+      where: {
+        chatId,
+        removed: false,
+        hidden: false,
+      },
     };
 
     if (cursor) {
@@ -61,7 +75,7 @@ export class MessageService {
       items.length === limit ? items[items.length - 1].id : null;
 
     return {
-      data: items as Message[],
+      data: items as unknown as Message[],
       nextCursor,
       hasNextPage: Boolean(nextCursor),
       total,
@@ -129,7 +143,7 @@ export class MessageService {
   }
 
   async createFileMessage(payload: SendFileMessageChatSocketParams) {
-    const {fileUrl, fileMeta, optimizedUrl, ...params} = payload;
+    const { fileUrl, fileMeta, optimizedUrl, ...params } = payload;
     const messagePart = await this.create({
       ...params,
       files: [],
