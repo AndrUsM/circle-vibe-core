@@ -8,6 +8,7 @@ import { MessageModule } from './modules/message/message.module';
 import { ChatGatewayModule } from './gateways/chat';
 import { UsersModule } from './modules/user/user.module';
 import { ParticipantModule } from './modules/participant/participant.module';
+import { ChatInviteModule } from './modules/chat-invites';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ParticipantModule } from './modules/participant/participant.module';
     MessageModule,
     ChatGatewayModule,
     ParticipantModule,
+    ChatInviteModule
   ],
   providers: [DatabaseService],
 })

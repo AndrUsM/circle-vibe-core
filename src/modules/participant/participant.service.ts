@@ -13,6 +13,9 @@ export class ParticipantService {
   ): Promise<ChatParticipant> {
     return this.databaseService.chatParticipant.create({
       data: createParticipantInputDto,
+      include: {
+        user: true,
+      },
     });
   }
 
@@ -30,6 +33,16 @@ export class ParticipantService {
     return this.createParticipantWithDefaultOptions(params);
   }
 
+  async getChatParticipantById(
+    chatParticipantId: number,
+  ): Promise<ChatParticipant | null> {
+    return this.databaseService.chatParticipant.findUnique({
+      where: {
+        id: chatParticipantId,
+      },
+    });
+  }
+
   async createParticipantWithDefaultOptions(
     params: GetChatParticipantInput,
   ): Promise<ChatParticipant> {
@@ -40,7 +53,7 @@ export class ParticipantService {
       },
     });
 
-    const chatRole = chat? UserChatRole.MEMBER : UserChatRole.ADMIN;
+    const chatRole = chat ? UserChatRole.MEMBER : UserChatRole.ADMIN;
 
     return this.createChatParticipant({
       ...params,

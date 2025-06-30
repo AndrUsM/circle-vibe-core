@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
+import { addHours } from 'date-fns';
 
 import { DatabaseService } from 'src/core';
-import { ChatCreateInputDto, ChatUpdateInputDto } from './dtos';
+import {
+  ChatCreateInputDto,
+  ChatUpdateInputDto,
+  InviteTokenInputDto,
+  InviteTokenOutputDto,
+} from './dtos';
 import { ChatListParams } from './params';
-import { Message } from '@prisma/client';
-import { ChatParticipant } from 'src/entities';
+import { isTokenExpired, UserChatRole, UserType } from '@circle-vibe/shared';
+import { JWT_TOKEN_SECRET } from 'src/configuration';
+import { ChatParticipant } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -127,7 +135,7 @@ export class ChatService {
           include: {
             // @ts-ignore
             user: true,
-          }
+          },
         },
       },
       take: 1,
@@ -193,5 +201,68 @@ export class ChatService {
     return [name.split(spaceOrSpecialSymbolRegex), Date.now()]
       .join('-')
       .toLowerCase();
+  }
+
+  async generateInviteToken(
+    chatId: number,
+    targetUserId: number,
+    fromChatParticipantId: number,
+  ) {
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id: targetUserId,
+      },
+    });
+
+    const expirationHours = user?.type === UserType.PRIVATE ? 1 : 2;
+    const payload: InviteTokenInputDto = {
+      chatId,
+      targetUserId,
+      role: UserChatRole.MEMBER,
+      fromChatParticipantId,
+    };
+
+    return {
+      token: jwt.sign(payload, JWT_TOKEN_SECRET, {
+        expiresIn: `${expirationHours}h`,
+      }),
+      expirationDate: addHours(new Date(), expirationHours),
+    };
+  }
+
+  async validateInviteToken(token: string): Promise<InviteTokenOutputDto> {
+    const payload = jwt.verify(token, JWT_TOKEN_SECRET) as jwt.JwtPayload &
+      InviteTokenInputDto;
+    const isExpired =
+      Boolean(payload?.exp) && isTokenExpired(Number(payload?.exp));
+    const isValid =
+      Boolean(payload?.chatId) &&
+      Boolean(payload?.targetUserId) &&
+      Boolean(payload?.fromChatParticipantId) &&
+      !isExpired;
+    const data: InviteTokenInputDto = {
+      chatId: payload?.chatId,
+      targetUserId: payload?.targetUserId,
+      role: payload?.role,
+      fromChatParticipantId: payload?.fromChatParticipantId,
+    };
+
+    return {
+      data,
+      isExpired,
+      isValid,
+    };
+  }
+
+  isChatParticipantExist(
+    chatId: number,
+    userId: number,
+  ): Promise<ChatParticipant | null> {
+    return this.databaseService.chatParticipant.findFirst({
+      where: {
+        chatId,
+        userId,
+      },
+    });
   }
 }

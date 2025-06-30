@@ -183,3 +183,12 @@ model ChatParticipant {
   threads  ThreadParticipant[]
   user     User                @relation(fields: [userId], references: [id])
 }
+
+model ChatInvite {
+  id                    Int      @id @default(autoincrement())
+  fromChatParticipantId Int
+  targetUserId          Int
+  expirationDate        DateTime
+  token                 String   @unique
+  chatId                Int
+}
