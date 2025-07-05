@@ -75,6 +75,61 @@ export class UserService {
     return createdUser as User;
   }
 
+  async deleteUser(userId: number): Promise<void> {
+    await this.databaseService.user.delete({
+      where: {
+        id: userId,
+      },
+    });
+
+    const participants = await this.databaseService.chatParticipant.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+      }
+    });
+    const participantIds = participants.map((participant) => participant.id);
+    const messageIds = await this.databaseService.message.findMany({
+      where: {
+        senderId: {
+          in: participantIds
+        },
+      },
+      select: {
+        id: true,
+      }
+    })
+
+    await this.databaseService.chatParticipant.deleteMany({
+      where: {
+        id: {
+          in: participantIds,
+        },
+      },
+    });
+
+    await this.databaseService.message.updateMany({
+      where: {
+        senderId: {
+          in: participantIds
+        },
+      },
+      data: {
+        removed: true,
+      }
+    });
+
+    await this.databaseService.messageFile.deleteMany({
+      where: {
+        messageId: {
+          in: messageIds.length ? messageIds?.map(({ id }) => id) : [],
+        },
+      },
+    });
+  }
+
   async matchUserByEmail(email: string): Promise<User | null> {
     const user = await this.databaseService.user.findUnique({
       where: { email },

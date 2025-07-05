@@ -18,9 +18,11 @@ export const composeUserFromAuthorizationInput = (
 ): UserDto => {
   return {
     username: input.username,
+    firstname: input.firstname,
     surname: input.surname,
     birthDate: input.birthDate,
     password: input.password,
+    isAllowedToSearch: input.isAllowedToSearch,
     isHiddenContactInfo: input.isHiddenContactInfo,
     city: input.city,
     country: input.country,

@@ -7,6 +7,7 @@ import { ChatSchema } from './chat.entity';
 
 export const ChatParticipantSchema = z.object({
   id: z.number(),
+  isMuted: z.boolean().default(false),
   userId: z.number(),
   user: UserSchema,
   chatId: z.number(),

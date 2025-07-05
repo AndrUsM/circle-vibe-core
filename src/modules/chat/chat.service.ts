@@ -9,10 +9,15 @@ import {
   InviteTokenInputDto,
   InviteTokenOutputDto,
 } from './dtos';
-import { ChatListParams } from './params';
-import { isTokenExpired, UserChatRole, UserType } from '@circle-vibe/shared';
+import { ChatListParams, SearchUserForInvitationInputDto } from './params';
+import {
+  isTokenExpired,
+  UserChatRole,
+  UserShortest,
+  UserType,
+} from '@circle-vibe/shared';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { ChatParticipant } from '@prisma/client';
+import { ChatParticipant, User } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -72,6 +77,62 @@ export class ChatService {
   }
 
   /**
+   * Deletes a message from the database.
+   *
+   * The function first checks if the participant exists and if the participant's
+   * chat id matches the chat id of the message.
+   *
+   * Then it checks if the message exists and if the message's sender id matches
+   * the sender id of the participant.
+   *
+   * If both checks pass, the function deletes the message file and the message
+   * itself.
+   *
+   * @param chatId - The id of the chat in which the message should be deleted.
+   * @param messageId - The id of the message to be deleted.
+   * @param senderId - The id of the participant who is trying to delete the message.
+   *
+   * @returns Nothing.
+   */
+  async deleteChatMessage(chatId: number, messageId: number, senderId: number) {
+    const participantDto = await this.databaseService.chatParticipant.findUnique({
+      where: {
+        chatId,
+        id: senderId,
+      }
+    });
+
+    if (!participantDto?.chatId || participantDto?.chatId !== chatId) {
+      return;
+    }
+
+    const messageDto = await this.databaseService.message.findUnique({
+      where: {
+        id: messageId,
+      },
+      select: {
+        senderId: true,
+      }
+    });
+
+    if (!messageDto?.senderId || messageDto?.senderId === senderId) {
+      return;
+    }
+
+    await this.databaseService.messageFile.delete({
+      where: {
+        id: messageId,
+      },
+    });
+
+    await this.databaseService.message.delete({
+      where: {
+        id: messageId,
+      },
+    });
+  }
+
+  /**
    * Finds a chat by its readable name.
    *
    * @param readableName - The readable name of the chat to be found.
@@ -113,6 +174,39 @@ export class ChatService {
         id: chatId,
       },
     });
+  }
+
+  async findUserForInvitation(
+    params: SearchUserForInvitationInputDto,
+  ): Promise<UserShortest | null> {
+    if (!params?.userId || !params?.chatId || !params?.username) {
+      return null;
+    }
+
+    const { userId, chatId, username } = params;
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    const chatParticipant =
+      await this.databaseService.chatParticipant.findFirst({
+        where: {
+          chatId,
+          userId,
+        },
+      });
+
+    if (chatParticipant?.id || !user?.isAllowedToSearch) {
+      return null;
+    }
+
+    const shortestUserOutput = await this.databaseService
+      .$queryRaw<UserShortest | null>`
+      SELECT u.id, u.firstname || " " || u.surname as name FROM "User" u WHERE u.username = ${username} AND u.id = ${userId} AND u.isAllowedToSearch = true`;
+
+    return shortestUserOutput;
   }
 
   async getAll(params: ChatListParams) {
@@ -177,9 +271,38 @@ export class ChatService {
   }
 
   async delete(chatId: number) {
-    return this.databaseService.chat.delete({
+    const messageIds = await this.databaseService.message.findMany({
+      where: {
+        chatId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await this.databaseService.chat.delete({
       where: {
         id: chatId,
+      },
+    });
+
+    await this.databaseService.chatParticipant.deleteMany({
+      where: {
+        chatId,
+      },
+    });
+
+    await this.databaseService.messageFile.deleteMany({
+      where: {
+        messageId: {
+          in: messageIds.length ? messageIds?.map(({ id }) => id) : [],
+        },
+      },
+    });
+
+    await this.databaseService.message.deleteMany({
+      where: {
+        chatId,
       },
     });
   }

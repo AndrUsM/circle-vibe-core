@@ -83,13 +83,15 @@ model MessageFile {
 
 model User {
   id                  Int            @id @default(autoincrement())
-  username            String
+  firstname           String
   surname             String
+  username            String?        @unique
   birthDate           DateTime?
   password            String         @unique
   avatarUrl           String?
   avatarUrlOptimized  String?
   isHiddenContactInfo Boolean        @default(true)
+  isAllowedToSearch   Boolean?       @default(true)
   country             String?
   city                String?
   email               String         @unique
@@ -175,8 +177,9 @@ model Chat {
 model ChatParticipant {
   id       Int          @id @default(autoincrement())
   chatRole UserChatRole @default(ADMIN)
+  isMuted  Boolean?     @default(false)
 
-  userId Int @unique
+  userId Int
   chatId Int
 
   messages Message[]

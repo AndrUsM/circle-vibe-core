@@ -4,13 +4,19 @@ import { ApiProperty } from "@nestjs/swagger";
 export class AuthorizationInput {
   /**
    * Username
-   * @example JohnDoe
+   * @example JohnDoe123
    */
   @ApiProperty({
-    example: 'JohnDoe',
+    example: 'JohnDoe123',
     required: true,
   })
   username: string;
+
+  @ApiProperty({
+    example: 'John',
+    required: true,
+  })
+  firstname: string;
 
   /**
    * User surname
@@ -71,6 +77,16 @@ export class AuthorizationInput {
     required: false,
   })
   isHiddenContactInfo: boolean;
+
+    /**
+   * Is user hidden from search
+   * @example true
+   */
+  @ApiProperty({
+    example: true,
+    required: false,
+  })
+  isAllowedToSearch: boolean;
 
   /**
    * User city

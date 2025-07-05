@@ -10,6 +10,10 @@ import {
   Put,
   Get,
   Query,
+  Delete,
+  UseGuards,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -19,6 +23,8 @@ import { CreateInviteLinkBodyParams } from './params';
 import { ParticipantService } from '../participant/participant.service';
 import { UserService } from '../user';
 import { ChatInviteService } from '../chat-invites';
+import { JwtAuthGuard, WsAuthGuard } from 'src/guards';
+import { HashedTokenParams } from '../auth/types';
 
 @Controller('chat')
 export class ChatController {
@@ -56,6 +62,25 @@ export class ChatController {
     return this.chatService.update(chatId, params);
   }
 
+  @Get(':id/users-to-invite')
+  getChatUsersToInvite(@Param('id') chatId: number, @Query('targetUserId') targetUserId: number, @Query('username') username: string) {
+    return this.chatService.findUserForInvitation({
+      userId: targetUserId,
+      chatId,
+      username,
+    });
+  }
+
+  @Delete(':id/message/:messageId')
+  @UseGuards(JwtAuthGuard)
+  deleteMessage(@Req() request: Request & HashedTokenParams, @Param('id') chatId: number, @Param('messageId') messageId: number) {
+    if (!request?.userId) {
+      return new UnauthorizedException();
+    }
+
+    return this.chatService.deleteChatMessage(chatId, messageId, request?.userId);
+  }
+
   @ApiResponse({
     status: 200,
     description: 'The chat has been successfully created',
@@ -68,6 +93,12 @@ export class ChatController {
   @HttpCode(201)
   createChat(@Body() params: ChatCreateInputDto) {
     return this.chatService.create(params);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  deleteChat(@Param('id') chatId: number) {
+    return this.chatService.delete(chatId);
   }
 
   @ApiResponse({

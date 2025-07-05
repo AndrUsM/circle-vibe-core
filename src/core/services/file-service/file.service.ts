@@ -5,7 +5,7 @@ import {
   UploadFileOutputDto,
   UploadImageOutputDto,
   UploadVideoOutputDto,
-} from './dtos';
+} from '@circle-vibe/shared';
 
 @Injectable()
 export class FileService {

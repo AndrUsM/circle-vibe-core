@@ -19,12 +19,13 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate --schema=src/database/schema.prisma",
+    "clear-generated-prisma": "rm -rf node_modules/.prisma",
+    "prisma:generate": "yarn clear-generated-prisma && prisma generate --schema=src/database/schema.prisma",
     "prisma:migrate": "prisma migrate dev --name $(date +\"%Y%m%d%H%M%S\") --schema=src/database/schema.prisma",
     "prisma:studio": "prisma studio --schema=src/database/schema.prisma"
   },
   "dependencies": {
-    "@circle-vibe/shared": "^1.1.47",
+    "@circle-vibe/shared": "^1.1.57",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
