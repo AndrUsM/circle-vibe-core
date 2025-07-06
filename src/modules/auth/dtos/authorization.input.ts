@@ -1,4 +1,4 @@
-import { CountryCode, User, UserRole, UserType } from "@circle-vibe/shared";
+import { CountryCode, UserRole, UserType } from "@circle-vibe/shared";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class AuthorizationInput {
