@@ -188,10 +188,11 @@ model ChatParticipant {
 }
 
 model ChatInvite {
-  id                    Int      @id @default(autoincrement())
+  id                    Int          @id @default(autoincrement())
   fromChatParticipantId Int
   targetUserId          Int
   expirationDate        DateTime
-  token                 String   @unique
+  role                  UserChatRole
+  token                 String       @unique
   chatId                Int
 }

@@ -176,19 +176,38 @@ export class ChatService {
     });
   }
 
+  async getChatParticipants(chatId: number) {
+    return await this.databaseService.chatParticipant.findMany({
+      where: {
+        chatId,
+      },
+      include: {
+        user: true,
+      }
+    });
+  }
+
   async findUserForInvitation(
     params: SearchUserForInvitationInputDto,
-  ): Promise<UserShortest | null> {
-    if (!params?.userId || !params?.chatId || !params?.username) {
+  ): Promise<User | null> {
+    const { chatParticipantId, chatId, username } = params;
+    const chatParticipantOfSender = await this.databaseService.chatParticipant.findUnique({
+      where: {
+        id: chatParticipantId,
+      },
+    });
+    const userToInvite = await this.databaseService.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    const userId = userToInvite?.id;
+
+    if (chatParticipantOfSender?.chatRole !== UserChatRole.ADMIN) {
       return null;
     }
 
-    const { userId, chatId, username } = params;
-    const user = await this.databaseService.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
 
     const chatParticipant =
       await this.databaseService.chatParticipant.findFirst({
@@ -198,15 +217,11 @@ export class ChatService {
         },
       });
 
-    if (chatParticipant?.id || !user?.isAllowedToSearch) {
+    if (chatParticipant?.id || !userToInvite?.isAllowedToSearch) {
       return null;
     }
 
-    const shortestUserOutput = await this.databaseService
-      .$queryRaw<UserShortest | null>`
-      SELECT u.id, u.firstname || " " || u.surname as name FROM "User" u WHERE u.username = ${username} AND u.id = ${userId} AND u.isAllowedToSearch = true`;
-
-    return shortestUserOutput;
+    return userToInvite;
   }
 
   async getAll(params: ChatListParams) {

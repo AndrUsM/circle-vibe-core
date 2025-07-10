@@ -62,23 +62,48 @@ export class ChatController {
     return this.chatService.update(chatId, params);
   }
 
-  @Get(':id/users-to-invite')
-  getChatUsersToInvite(@Param('id') chatId: number, @Query('targetUserId') targetUserId: number, @Query('username') username: string) {
+  @Get(':id/participants')
+  getChatParticipants(@Param('id') chatId: number) {
+    if (!chatId) {
+      return [];
+    }
+
+    return this.chatService.getChatParticipants(Number(chatId));
+  }
+
+  @Get(':id/user-to-invite')
+  getChatUsersToInvite(
+    @Param('id') chatId: number,
+    @Query('chatParticipantId') chatParticipantId: number,
+    @Query('username') username: string,
+  ) {
+    if (!chatParticipantId || !chatId || !username) {
+      return null;
+    }
+
     return this.chatService.findUserForInvitation({
-      userId: targetUserId,
-      chatId,
+      chatParticipantId: Number(chatParticipantId),
+      chatId: Number(chatId),
       username,
     });
   }
 
   @Delete(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  deleteMessage(@Req() request: Request & HashedTokenParams, @Param('id') chatId: number, @Param('messageId') messageId: number) {
+  deleteMessage(
+    @Req() request: Request & HashedTokenParams,
+    @Param('id') chatId: number,
+    @Param('messageId') messageId: number,
+  ) {
     if (!request?.userId) {
       return new UnauthorizedException();
     }
 
-    return this.chatService.deleteChatMessage(chatId, messageId, request?.userId);
+    return this.chatService.deleteChatMessage(
+      chatId,
+      messageId,
+      request?.userId,
+    );
   }
 
   @ApiResponse({
@@ -120,16 +145,16 @@ export class ChatController {
 
     const { token, expirationDate } =
       await this.chatService.generateInviteToken(
-        chatId,
-        targetUserId,
-        fromChatParticipantId,
+        Number(chatId),
+        Number(targetUserId),
+        Number(fromChatParticipantId),
       );
 
     await this.chatInviteService.create({
-      chatId,
-      targetUserId,
+      chatId: Number(chatId),
+      targetUserId: Number(targetUserId),
       role: UserChatRole.MEMBER,
-      fromChatParticipantId,
+      fromChatParticipantId: Number(fromChatParticipantId),
       token,
       expirationDate,
     });

@@ -1,5 +1,5 @@
 export interface SearchUserForInvitationInputDto {
-  userId: number;
+  chatParticipantId: number;
   chatId: number
   username: string;
 }
