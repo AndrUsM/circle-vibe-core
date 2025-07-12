@@ -13,11 +13,10 @@ import { ChatListParams, SearchUserForInvitationInputDto } from './params';
 import {
   isTokenExpired,
   UserChatRole,
-  UserShortest,
   UserType,
 } from '@circle-vibe/shared';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { ChatParticipant, User } from '@prisma/client';
+import { ChatParticipant, ChatType, Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -191,6 +190,9 @@ export class ChatService {
     params: SearchUserForInvitationInputDto,
   ): Promise<User | null> {
     const { chatParticipantId, chatId, username } = params;
+    const personalTargetUserToken = params?.personalTargetUserToken;
+    const userFilterByPersonalToken = personalTargetUserToken?.length ? { privateToken: personalTargetUserToken } : {};
+    const userFilterByUsername = username?.length ? { username } : {};
     const chatParticipantOfSender = await this.databaseService.chatParticipant.findUnique({
       where: {
         id: chatParticipantId,
@@ -198,8 +200,9 @@ export class ChatService {
     });
     const userToInvite = await this.databaseService.user.findUnique({
       where: {
-        username,
-      },
+        ...userFilterByUsername,
+        ...userFilterByPersonalToken,
+      } as Prisma.UserWhereUniqueInput,
     });
 
     const userId = userToInvite?.id;
@@ -225,17 +228,30 @@ export class ChatService {
   }
 
   async getAll(params: ChatListParams) {
+    const chatIdsByUser = await this.databaseService.chatParticipant.findMany({
+      where: {
+        userId: params?.userId,
+      },
+      select: {
+        chatId: true
+      }
+    })
+    const mappedChatIds = chatIdsByUser.map(({ chatId }) => chatId);
     const chats = await this.databaseService.chat.findMany({
       where: {
-        // ...params,
+        id: {
+          in: mappedChatIds
+        },
+        hidden: params?.hidden ?? true,
+        removed: params?.removed ?? false,
+        type: params?.type ?? ChatType.PRIVATE,
       },
     });
 
-    const chatIds = chats.map(({ id }) => Number(id));
     const lastMessages = await this.databaseService.message.findMany({
       where: {
         chatId: {
-          in: chatIds,
+          in: mappedChatIds,
         },
       },
       include: {

@@ -11,4 +11,5 @@ export interface ChatListParams {
   empty?: boolean;
   name?: string;
   hidden?: boolean;
+  removed?: boolean;
 }

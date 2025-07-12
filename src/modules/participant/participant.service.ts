@@ -19,6 +19,15 @@ export class ParticipantService {
     });
   }
 
+  async getChatParticipants(params: GetChatParticipantInput): Promise<ChatParticipant | null> {
+    return this.databaseService.chatParticipant.findFirst({
+      where: params,
+      include: {
+        user: true,
+      }
+    });
+  }
+
   async getOrCreateChatParticipant(
     params: GetChatParticipantInput,
   ): Promise<ChatParticipant | null> {
@@ -46,14 +55,14 @@ export class ParticipantService {
   async createParticipantWithDefaultOptions(
     params: GetChatParticipantInput,
   ): Promise<ChatParticipant> {
-    const chat = await this.databaseService.chatParticipant.findFirst({
+    const chatParticipantExists = await this.databaseService.chatParticipant.findFirst({
       where: {
         chatId: params.chatId,
         chatRole: UserChatRole.ADMIN,
       },
     });
 
-    const chatRole = chat ? UserChatRole.MEMBER : UserChatRole.ADMIN;
+    const chatRole = chatParticipantExists ? UserChatRole.MEMBER : UserChatRole.ADMIN;
 
     return this.createChatParticipant({
       ...params,

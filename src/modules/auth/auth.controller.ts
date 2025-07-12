@@ -4,6 +4,7 @@ import {
   Controller,
   HttpCode,
   NotFoundException,
+  Param,
   Post,
 } from '@nestjs/common';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
@@ -16,6 +17,7 @@ import { AuthorizationInput } from './dtos/authorization.input';
 import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
 import { ChatService } from '../chat';
+import { ParticipantService } from '../participant/participant.service';
 
 @Controller('auth')
 export class AuthController {
@@ -23,20 +25,31 @@ export class AuthController {
     private userService: UserService,
     private authService: AuthService,
     private chatService: ChatService,
+    private participantService: ParticipantService,
   ) {}
 
-  @Post('start-up')
+  @Post(`:userId/start-up`)
   @HttpCode(200)
-  async startUp() {
-    await this.chatService.create({
-      name: 'Saved Messages',
-      hidden: true,
-      description: 'description',
-      type: ChatType.PRIVATE,
-      usersLimit: 1,
-    }, {
-      isSavedMessages: true,
-    });
+  async startUp(@Param('userId') userId: number) {
+    const chat = await this.chatService.create(
+      {
+        name: 'saved-messages',
+        hidden: true,
+        description: 'description',
+        type: ChatType.PRIVATE,
+        usersLimit: 1,
+      },
+      {
+        isSavedMessages: true,
+      },
+    );
+
+    if (chat) {
+      await this.participantService.createParticipantWithDefaultOptions({
+        userId,
+        chatId: chat.id,
+      });
+    }
   }
 
   @Post('sign-in')
@@ -61,9 +74,7 @@ export class AuthController {
       return new BadRequestException();
     }
 
-    const user = await this.userService.matchUserByEmail(
-      params.email,
-    );
+    const user = await this.userService.matchUserByEmail(params.email);
 
     if (!user) {
       return new NotFoundException('User not found');
@@ -125,7 +136,7 @@ export class AuthController {
       password: encryptedPassword,
     });
 
-    await this.startUp();
+    await this.startUp(createdUser?.id);
 
     if (createdUser?.id) {
       return createdUser;

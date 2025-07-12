@@ -5,8 +5,9 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 import { io } from 'socket.io-client';
 
 import {
@@ -18,7 +19,6 @@ import {
   UserChatStatus,
   FileVideoServerSocketKeys,
   GatewayNamespaces,
-  // SendFileMessageChatSocketParams,
   SendFileMessageMetaInput,
   MessageType,
 } from '@circle-vibe/shared';
@@ -33,7 +33,6 @@ import {
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
 import { ParticipantService } from 'src/modules/participant/participant.service';
 import { MessageFileVideoCreateDto } from 'src/modules/message/dtos';
-import { MessageFileCreateInputDto } from 'src/modules/message/dtos/message-file-create.dto';
 
 export interface SendFileMessageChatSocketParams {
   content: string;
@@ -52,11 +51,15 @@ export interface SendFileMessageChatSocketParams {
   namespace: `/${GatewayNamespaces.CHAT_MAIN}`,
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  userId?: number;
+  @WebSocketServer() server: Server;
+
+  // move to DB
+  userIds = new Map<string, number>();
   #dataLimit = 20;
 
   #fileVideoServerSocketUrl = `http://localhost:3005/api/${GatewayNamespaces.VIDEO_UPLOAD}`;
   fileVideoServerSocket = io(this.#fileVideoServerSocketUrl);
+
 
   constructor(
     private messageService: MessageService,
@@ -67,19 +70,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   @UseGuards(WsAuthGuard)
-  handleDisconnect(client: any) {
-    console.log('handleDisconnect');
-    if (!this.userId) {
+  handleDisconnect(client: Socket) {
+    const userId = this.userIds.get(client.id);
+
+    if (!userId) {
       return;
     }
 
-    this.userService.changeUserChatStatus(this.userId, UserChatStatus.OFFLINE);
+    this.userService.changeUserChatStatus(userId, UserChatStatus.OFFLINE);
   }
 
   @UseGuards(WsAuthGuard)
   handleConnection(client: Socket, ...args: any[]) {
     const { userId } = this.#getAuthParams(client);
-    this.userId = userId;
+    const userIdsValues = Array.from(this.userIds.entries());
+
+    const isUserExists = userIdsValues.find(([_, value]) => value === (Number(userId)));
+
+    if (!isUserExists) {
+      this.userIds.set(client.id, Number(userId));
+    } else {
+      const clientId = isUserExists[0];
+
+      this.userIds.delete(clientId);
+      this.userIds.set(client.id, Number(userId));
+    }
 
     if (userId) {
       this.userService.changeUserChatStatus(userId, UserChatStatus.ONLINE);
@@ -93,13 +108,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     const { chatId } = data;
+    const roomName = String(chatId);
 
     const messages = await this.messageService.getMessagesByChat(chatId, {
       limit: this.#dataLimit,
       cursor: data?.cursor ?? 0,
     });
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
 
   @UseGuards(WsAuthGuard)
@@ -109,6 +125,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: MessageFileVideoCreateDto,
   ) {
     const chatId = data.chatId;
+    const roomName = String(chatId);
 
     await this.messageService.createFileVideoMessage(data);
 
@@ -117,7 +134,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       cursor: 0,
     });
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
 
   @UseGuards(WsAuthGuard)
@@ -127,6 +144,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: SendMessageSocketParams,
   ) {
     const chatId = data.chatId;
+    const roomName = String(chatId);
     const message = data;
 
     await this.messageService.create({
@@ -139,7 +157,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       cursor: 0,
     });
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
 
   @UseGuards(WsAuthGuard)
@@ -149,6 +167,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() params: SendFileMessageChatSocketParams,
   ) {
     const { chatId } = params;
+    const roomName = String(chatId);
 
     await this.messageService.createFileMessage(params);
 
@@ -157,7 +176,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       cursor: 0,
     });
 
-    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
 
   @UseGuards(WsAuthGuard)
@@ -167,10 +186,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() params: JoinChatSocketParams,
   ) {
     const { chatId, cursor } = params;
+    const userId = this.userIds.get(client.id);
+    const roomName = String(chatId);
+
+    if (!userId) {
+      return;
+    }
+
     const chatParticipant =
-      await this.participantService.getOrCreateChatParticipant({
+      await this.participantService.getChatParticipants({
         chatId,
-        userId: Number(this.userId),
+        userId,
       });
 
     const messagesForChat = await this.messageService.getMessagesByChat(
@@ -180,6 +206,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         cursor: cursor ?? 0,
       },
     );
+
+    client.join(roomName);
 
     client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
     client.emit(ChatSocketCommand.JOIN_CHAT, { chatParticipant });
@@ -191,6 +219,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() chatInputDto: CreateChatSocketParams,
   ) {
+    const userId = this.userIds.get(client.id);
+
+    if (!userId) {
+      return;
+    }
+
     const chat = await this.chatService.create({
       ...chatInputDto,
       usersLimit: 100,
@@ -198,7 +232,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.participantService.getOrCreateChatParticipant({
       chatId: chat.id,
-      userId: Number(this.userId),
+      userId,
     });
 
     client.emit(ChatSocketCommand.REFRESH_CHATS, chat);
@@ -207,8 +241,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.REFRESH_CHATS)
   async handleRefreshChats(@ConnectedSocket() client: Socket) {
+    const userId = this.userIds.get(client.id);
+
+    if (!userId) {
+      return;
+    }
+
     const chats = await this.chatService.getAll({
-      userId: this.userId,
+      userId,
       cursor: 0,
       limit: this.#dataLimit,
     });
@@ -229,7 +269,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.fileVideoServerSocket.emit(
       FileVideoServerSocketKeys.UPLOAD_VIDEO_CHUNK,
       chunk,
-    ); // Forward to file server
+    );
   }
 
   @SubscribeMessage(FileVideoServerSocketKeys.UPLOAD_VIDEO_END)

@@ -23,8 +23,9 @@ import { CreateInviteLinkBodyParams } from './params';
 import { ParticipantService } from '../participant/participant.service';
 import { UserService } from '../user';
 import { ChatInviteService } from '../chat-invites';
-import { JwtAuthGuard, WsAuthGuard } from 'src/guards';
 import { HashedTokenParams } from '../auth/types';
+
+import { JwtAuthGuard } from 'src/guards';
 
 @Controller('chat')
 export class ChatController {
@@ -76,16 +77,25 @@ export class ChatController {
     @Param('id') chatId: number,
     @Query('chatParticipantId') chatParticipantId: number,
     @Query('username') username: string,
+    @Query("personalTargetUserToken") personalTargetUserToken?: string,
   ) {
-    if (!chatParticipantId || !chatId || !username) {
+    const hasQueryParams = username || personalTargetUserToken;
+    if (!chatParticipantId || !chatId || !hasQueryParams) {
       return null;
     }
 
-    return this.chatService.findUserForInvitation({
+    const user =  this.chatService.findUserForInvitation({
       chatParticipantId: Number(chatParticipantId),
       chatId: Number(chatId),
       username,
+      personalTargetUserToken,
     });
+
+    if (!user) {
+      return new NotFoundException();
+    }
+
+    return user;
   }
 
   @Delete(':id/message/:messageId')
