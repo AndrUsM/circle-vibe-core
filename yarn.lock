@@ -331,10 +331,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@circle-vibe/shared@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.0.tgz#0a2da28f84a7af970ac076b39fe311aedc95e653"
-  integrity sha512-ulrTimL1Zs52PL3418fLlfqxs1TsrC978WsKp4TKRndiiSQf+zfAo7V+jFmxXHasQJZtB8hq7iJezfmUkQEOTg==
+"@circle-vibe/shared@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.1.tgz#8823df74d5362090bfd66298cc071d06cdc82812"
+  integrity sha512-1aYMh6+wv03w0yMeu/sSoKhZF8xsReqGpdgHGGX3gKtxz4GLAkI7Z5VrRNdanU5pjAidFFqmszrO19xxeHWdyA==
   dependencies:
     date-fns "^4.1.0"
     formik "^2.4.6"

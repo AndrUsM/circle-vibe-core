@@ -55,11 +55,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // move to DB
   userIds = new Map<string, number>();
-  #dataLimit = 20;
+  #dataLimit = 50;
 
   #fileVideoServerSocketUrl = `http://localhost:3005/api/${GatewayNamespaces.VIDEO_UPLOAD}`;
   fileVideoServerSocket = io(this.#fileVideoServerSocketUrl);
-
 
   constructor(
     private messageService: MessageService,
@@ -85,7 +84,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = this.#getAuthParams(client);
     const userIdsValues = Array.from(this.userIds.entries());
 
-    const isUserExists = userIdsValues.find(([_, value]) => value === (Number(userId)));
+    const isUserExists = userIdsValues.find(
+      ([_, value]) => value === Number(userId),
+    );
 
     if (!isUserExists) {
       this.userIds.set(client.id, Number(userId));
@@ -135,6 +136,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+    await this.#notifyUserAboutNewMessage(client, chatId);
   }
 
   @UseGuards(WsAuthGuard)
@@ -158,6 +160,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+
+    await this.#notifyUserAboutNewMessage(client, chatId);
   }
 
   @UseGuards(WsAuthGuard)
@@ -177,6 +181,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
+
+    await this.#notifyUserAboutNewMessage(client, chatId);
   }
 
   @UseGuards(WsAuthGuard)
@@ -193,11 +199,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const chatParticipant =
-      await this.participantService.getChatParticipants({
-        chatId,
-        userId,
-      });
+    const chatParticipant = await this.participantService.getChatParticipants({
+      chatId,
+      userId,
+    });
 
     const messagesForChat = await this.messageService.getMessagesByChat(
       chatId,
@@ -211,6 +216,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messagesForChat);
     client.emit(ChatSocketCommand.JOIN_CHAT, { chatParticipant });
+    client.emit(ChatSocketCommand.SCROLL_TO_END_OF_MESSAGES);
   }
 
   @UseGuards(WsAuthGuard)
@@ -235,12 +241,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId,
     });
 
-    client.emit(ChatSocketCommand.REFRESH_CHATS, chat);
+    const chats = await this.chatService.getAll({
+      userId,
+      cursor: 0,
+      limit: this.#dataLimit,
+    });
+
+    client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.REFRESH_CHATS)
-  async handleRefreshChats(@ConnectedSocket() client: Socket) {
+  async handleRefreshChats(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomName?: string,
+  ) {
     const userId = this.userIds.get(client.id);
 
     if (!userId) {
@@ -253,6 +268,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       limit: this.#dataLimit,
     });
 
+    if (roomName) {
+      this.server.to(roomName).emit(ChatSocketCommand.REFRESH_CHATS, chats);
+
+      return;
+    }
+
     client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
   }
 
@@ -262,6 +283,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = this.authService.parseJWT(token, personalToken);
 
     return { userId: userId ?? undefined };
+  }
+
+  async #notifyUserAboutNewMessage(client: Socket, chatId: number) {
+    const roomName = String(chatId);
+
+    client.to(roomName).emit(ChatSocketCommand.SCROLL_TO_END_OF_MESSAGES);
+    client.broadcast
+      .to(roomName)
+      .emit(ChatSocketCommand.NOTIFY_ABOUT_NEW_MESSAGE);
   }
 
   @SubscribeMessage(FileVideoServerSocketKeys.UPLOAD_VIDEO_CHUNK)

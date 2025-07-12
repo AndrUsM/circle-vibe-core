@@ -52,6 +52,20 @@ export class ParticipantService {
     });
   }
 
+  async getUserIdByChatParams(participantId: number, chatId: number): Promise<number | undefined> {
+    const response = await this.databaseService.chatParticipant.findFirst({
+      where: {
+        id: participantId,
+        chatId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return response?.userId;
+  }
+
   async createParticipantWithDefaultOptions(
     params: GetChatParticipantInput,
   ): Promise<ChatParticipant> {
