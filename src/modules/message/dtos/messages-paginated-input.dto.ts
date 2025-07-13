@@ -1,4 +1,4 @@
 export interface MessagesPaginatedInputDto {
-  limit: number;
-  cursor: number;
+  page: number;
+  pageSize: number;
 }

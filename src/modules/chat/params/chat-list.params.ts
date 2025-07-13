@@ -1,8 +1,8 @@
 import { ChatType } from "@circle-vibe/shared";
 
 export interface ChatListParams {
-  cursor: number;
-  limit: number;
+  page: number;
+  pageSize: number;
   userId?: number;
   readableName?: string;
   type?: ChatType;

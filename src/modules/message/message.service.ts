@@ -8,12 +8,12 @@ import {
   UploadImageOutputDto,
   SendFileMessageChatSocketParams,
   UploadVideoOutputDto,
+  PaginatedResponse,
 } from '@circle-vibe/shared';
 import {
   MessageCreateInputDto,
   MessageFilesInputDto,
   MessageFileVideoCreateDto,
-  MessagePaginatedDto,
   MessagesPaginatedInputDto,
   UploadFileMetaInputDto,
 } from './dtos';
@@ -33,20 +33,22 @@ export class MessageService {
     private fileService: FileService,
   ) {}
 
-  async getMessagesByChat(
+  async getMessagesByChatPaginated(
     chatId: number,
     params: MessagesPaginatedInputDto,
-  ): Promise<MessagePaginatedDto<Message>> {
-    const { limit, cursor } = params;
+  ): Promise<PaginatedResponse<Message>> {
+    const { page, pageSize } = params;
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
 
     const query: Prisma.MessageFindManyArgs = {
       orderBy: { createdAt: 'asc' },
-      take: limit,
+      take,
+      skip,
       include: {
         files: true,
         sender: {
           include: {
-            // @ts-ignore
             user: true,
           },
         },
@@ -59,28 +61,22 @@ export class MessageService {
       },
     };
 
-    if (cursor) {
-      query.skip = 1;
-      query.cursor = { id: cursor };
-    }
-
-    const total = await this.databaseService.message.count({
+    const totalItems = await this.databaseService.message.count({
       where: {
         chatId,
+        removed: false,
+        hidden: false,
       },
     });
 
     const items = await this.databaseService.message.findMany(query);
 
-    const nextCursor =
-      items.length === limit ? items[items.length - 1].id : null;
-
     return {
-      data: items as unknown as Message[],
-      nextCursor,
-      hasNextPage: Boolean(nextCursor),
-      total,
-      limit,
+      data: (items ?? []) as unknown as Message[],
+      totalItems,
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalItems / pageSize),
     };
   }
 

@@ -11,12 +11,20 @@ import {
 } from './dtos';
 import { ChatListParams, SearchUserForInvitationInputDto } from './params';
 import {
+  Chat,
   isTokenExpired,
+  PaginatedResponse,
   UserChatRole,
   UserType,
 } from '@circle-vibe/shared';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { ChatParticipant, ChatType, Message, Prisma, User } from '@prisma/client';
+import {
+  ChatParticipant,
+  ChatType,
+  Message,
+  Prisma,
+  User,
+} from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -94,12 +102,13 @@ export class ChatService {
    * @returns Nothing.
    */
   async deleteChatMessage(chatId: number, messageId: number, senderId: number) {
-    const participantDto = await this.databaseService.chatParticipant.findUnique({
-      where: {
-        chatId,
-        id: senderId,
-      }
-    });
+    const participantDto =
+      await this.databaseService.chatParticipant.findUnique({
+        where: {
+          chatId,
+          id: senderId,
+        },
+      });
 
     if (!participantDto?.chatId || participantDto?.chatId !== chatId) {
       return;
@@ -111,7 +120,7 @@ export class ChatService {
       },
       select: {
         senderId: true,
-      }
+      },
     });
 
     if (!messageDto?.senderId || messageDto?.senderId === senderId) {
@@ -182,7 +191,7 @@ export class ChatService {
       },
       include: {
         user: true,
-      }
+      },
     });
   }
 
@@ -191,13 +200,16 @@ export class ChatService {
   ): Promise<User | null> {
     const { chatParticipantId, chatId, username } = params;
     const personalTargetUserToken = params?.personalTargetUserToken;
-    const userFilterByPersonalToken = personalTargetUserToken?.length ? { privateToken: personalTargetUserToken } : {};
+    const userFilterByPersonalToken = personalTargetUserToken?.length
+      ? { privateToken: personalTargetUserToken }
+      : {};
     const userFilterByUsername = username?.length ? { username } : {};
-    const chatParticipantOfSender = await this.databaseService.chatParticipant.findUnique({
-      where: {
-        id: chatParticipantId,
-      },
-    });
+    const chatParticipantOfSender =
+      await this.databaseService.chatParticipant.findUnique({
+        where: {
+          id: chatParticipantId,
+        },
+      });
     const userToInvite = await this.databaseService.user.findUnique({
       where: {
         ...userFilterByUsername,
@@ -210,7 +222,6 @@ export class ChatService {
     if (chatParticipantOfSender?.chatRole !== UserChatRole.ADMIN) {
       return null;
     }
-
 
     const chatParticipant =
       await this.databaseService.chatParticipant.findFirst({
@@ -227,26 +238,33 @@ export class ChatService {
     return userToInvite;
   }
 
-  async getAll(params: ChatListParams) {
+  async getAllPaginated(
+    params: ChatListParams,
+  ): Promise<PaginatedResponse<Chat> | null> {
+    const { page, pageSize } = params;
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
     const chatIdsByUser = await this.databaseService.chatParticipant.findMany({
       where: {
         userId: params?.userId,
       },
       select: {
-        chatId: true
+        chatId: true,
       },
       distinct: ['chatId'],
-    })
+    });
     const mappedChatIds = chatIdsByUser.map(({ chatId }) => chatId);
     const chats = await this.databaseService.chat.findMany({
       where: {
         id: {
-          in: mappedChatIds
+          in: mappedChatIds,
         },
         hidden: params?.hidden ?? true,
         removed: params?.removed ?? false,
         type: params?.type ?? ChatType.PRIVATE,
       },
+      skip,
     });
 
     const lastMessages = await this.databaseService.message.findMany({
@@ -263,14 +281,15 @@ export class ChatService {
           },
         },
       },
-      take: 10,
+      take,
+      skip,
       distinct: ['chatId'],
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return chats.map((chat) => {
+    const data = chats.map((chat) => {
       const lastMessage = lastMessages.find(
         (message) => message.chatId === chat.id,
       );
@@ -280,8 +299,18 @@ export class ChatService {
         empty: lastMessages?.length === 0,
         lastMessageId: lastMessage?.id,
         lastMessage,
-      };
+      } as unknown as Chat;
     });
+
+    const totalItems = chatIdsByUser.length;
+
+    return {
+      data,
+      page,
+      totalItems,
+      pageSize,
+      totalPages: Math.ceil(totalItems / pageSize),
+    };
   }
 
   async softDelete(chatId: number) {

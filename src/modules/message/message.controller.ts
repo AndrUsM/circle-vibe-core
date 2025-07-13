@@ -41,20 +41,20 @@ export class MessageController {
   @HttpCode(200)
   async chatMessagesPaginated(
     @Query('chatId') chatId: number,
-    @Query('cursor') cursor: number,
-    @Query('limit') limit: number,
+    @Query('page') page: number,
+    @Query('pageSize') pageSize: number,
   ) {
     const chat = await this.chatService.findById(chatId);
 
-    if (this.chatService.findById(chatId) === null) {
+    if (chat === null) {
       return new NotFoundException();
     }
 
     const params: MessagesPaginatedInputDto = {
-      cursor,
-      limit,
+      page,
+      pageSize,
     };
 
-    return this.messageService.getMessagesByChat(chatId, params);
+    return this.messageService.getMessagesByChatPaginated(chatId, params);
   }
 }

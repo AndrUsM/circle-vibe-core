@@ -42,7 +42,7 @@ import { FILE_VIDEO_SOCKET_URL } from 'src/configuration';
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  #dataLimit = 50;
+  #dataLimit = 20;
 
   fileVideoServerSocket = io(FILE_VIDEO_SOCKET_URL);
 
@@ -107,10 +107,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { chatId } = data;
     const roomName = String(chatId);
 
-    const messages = await this.messageService.getMessagesByChat(chatId, {
-      limit: this.#dataLimit,
-      cursor: data?.cursor ?? 0,
-    });
+    const messages = await this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+    );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
   }
@@ -126,10 +129,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.messageService.createFileVideoMessage(data);
 
-    const messages = await this.messageService.getMessagesByChat(chatId, {
-      limit: this.#dataLimit,
-      cursor: 0,
-    });
+    const messages = await this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+    );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
     await this.#notifyUserAboutNewMessage(client, chatId);
@@ -150,10 +156,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       files: [],
     });
 
-    const messages = await this.messageService.getMessagesByChat(chatId, {
-      limit: this.#dataLimit,
-      cursor: 0,
-    });
+    const messages = await this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+    );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
 
@@ -171,10 +180,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.messageService.createFileMessage(params);
 
-    const messages = await this.messageService.getMessagesByChat(chatId, {
-      limit: this.#dataLimit,
-      cursor: 0,
-    });
+    const messages = await this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+    );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
 
@@ -200,13 +212,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId,
     });
 
-    const messagesForChat = await this.messageService.getMessagesByChat(
-      chatId,
-      {
-        limit: this.#dataLimit,
-        cursor: cursor ?? 0,
-      },
-    );
+    const messagesForChat =
+      await this.messageService.getMessagesByChatPaginated(chatId, {
+        pageSize: this.#dataLimit,
+        page: 1,
+      });
 
     client.join(roomName);
 
@@ -237,10 +247,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId,
     });
 
-    const chats = await this.chatService.getAll({
+    const chats = await this.chatService.getAllPaginated({
       userId,
-      cursor: 0,
-      limit: this.#dataLimit,
+      pageSize: this.#dataLimit,
+      page: 1,
     });
 
     client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
@@ -258,10 +268,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const chats = await this.chatService.getAll({
+    const chats = await this.chatService.getAllPaginated({
       userId,
-      cursor: 0,
-      limit: this.#dataLimit,
+      pageSize: this.#dataLimit,
+      page: 1,
     });
 
     if (roomName) {
