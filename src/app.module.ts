@@ -2,13 +2,17 @@ import { Module } from '@nestjs/common';
 
 import { DatabaseModule, DatabaseService } from './core/database';
 import { FileServiceModule } from './core/services';
-import { AuthModule } from './modules/auth/auth.module';
-import { ChatModule } from './modules/chat/chat.module';
-import { MessageModule } from './modules/message/message.module';
 import { ChatGatewayModule } from './gateways/chat';
-import { UsersModule } from './modules/user/user.module';
-import { ParticipantModule } from './modules/participant/participant.module';
-import { ChatInviteModule } from './modules/chat-invites';
+
+import {
+  AuthModule,
+  MessageModule,
+  UsersModule,
+  ParticipantModule,
+  ParticipantGatewayStateModule,
+  ChatInviteModule,
+  ChatModule,
+} from './modules';
 
 @Module({
   imports: [
@@ -20,7 +24,8 @@ import { ChatInviteModule } from './modules/chat-invites';
     MessageModule,
     ChatGatewayModule,
     ParticipantModule,
-    ChatInviteModule
+    ChatInviteModule,
+    ParticipantGatewayStateModule,
   ],
   providers: [DatabaseService],
 })

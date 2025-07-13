@@ -196,3 +196,9 @@ model ChatInvite {
   token                 String       @unique
   chatId                Int
 }
+
+model ChatParticipantGatewayState {
+  id       Int    @id @default(autoincrement())
+  clientId String @unique
+  userId   Int
+}

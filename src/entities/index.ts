@@ -5,3 +5,4 @@ export * from './message-file.entity';
 export * from './thread.entity';
 export * from './user.entity';
 export * from './chat-invite.entity';
+export * from './chat-participant-gateway-state.entity';

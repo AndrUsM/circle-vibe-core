@@ -16,7 +16,7 @@ import {
   UserType,
 } from '@circle-vibe/shared';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { ChatParticipant, ChatType, Prisma, User } from '@prisma/client';
+import { ChatParticipant, ChatType, Message, Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -234,7 +234,8 @@ export class ChatService {
       },
       select: {
         chatId: true
-      }
+      },
+      distinct: ['chatId'],
     })
     const mappedChatIds = chatIdsByUser.map(({ chatId }) => chatId);
     const chats = await this.databaseService.chat.findMany({
@@ -258,12 +259,11 @@ export class ChatService {
         files: true,
         sender: {
           include: {
-            // @ts-ignore
             user: true,
           },
         },
       },
-      take: 1,
+      take: 10,
       distinct: ['chatId'],
       orderBy: {
         createdAt: 'desc',
@@ -277,7 +277,7 @@ export class ChatService {
 
       return {
         ...chat,
-        empty: !lastMessage,
+        empty: lastMessages?.length === 0,
         lastMessageId: lastMessage?.id,
         lastMessage,
       };

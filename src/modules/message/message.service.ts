@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-import { Message, MessageStatus, MessageType,   UploadFileOutputDto,
+import {
+  Message,
+  MessageStatus,
+  MessageType,
+  UploadFileOutputDto,
   UploadImageOutputDto,
-  UploadVideoOutputDto, } from '@circle-vibe/shared';
+  SendFileMessageChatSocketParams,
+  UploadVideoOutputDto,
+} from '@circle-vibe/shared';
 import {
   MessageCreateInputDto,
   MessageFilesInputDto,
@@ -19,7 +25,6 @@ import {
   Prisma,
 } from '@prisma/client';
 import { FileService } from 'src/core/services';
-import { SendFileMessageChatSocketParams } from 'src/gateways/chat/chat.gateway';
 
 @Injectable()
 export class MessageService {
@@ -43,7 +48,7 @@ export class MessageService {
           include: {
             // @ts-ignore
             user: true,
-          }
+          },
         },
         thread: true,
       },
