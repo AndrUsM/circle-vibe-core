@@ -19,12 +19,18 @@ export class ParticipantService {
     });
   }
 
-  async getChatParticipants(params: GetChatParticipantInput): Promise<ChatParticipant | null> {
+  async getChatParticipants(
+    params: GetChatParticipantInput,
+  ): Promise<ChatParticipant | null> {
+    const { userId, chatId } = params;
     return this.databaseService.chatParticipant.findFirst({
-      where: params,
+      where: {
+        userId,
+        chatId,
+      },
       include: {
         user: true,
-      }
+      },
     });
   }
 
@@ -52,7 +58,10 @@ export class ParticipantService {
     });
   }
 
-  async getUserIdByChatParams(participantId: number, chatId: number): Promise<number | undefined> {
+  async getUserIdByChatParams(
+    participantId: number,
+    chatId: number,
+  ): Promise<number | undefined> {
     const response = await this.databaseService.chatParticipant.findFirst({
       where: {
         id: participantId,
@@ -69,14 +78,17 @@ export class ParticipantService {
   async createParticipantWithDefaultOptions(
     params: GetChatParticipantInput,
   ): Promise<ChatParticipant> {
-    const chatParticipantExists = await this.databaseService.chatParticipant.findFirst({
-      where: {
-        chatId: params.chatId,
-        chatRole: UserChatRole.ADMIN,
-      },
-    });
+    const chatParticipantExists =
+      await this.databaseService.chatParticipant.findFirst({
+        where: {
+          chatId: params.chatId,
+          chatRole: UserChatRole.ADMIN,
+        },
+      });
 
-    const chatRole = chatParticipantExists ? UserChatRole.MEMBER : UserChatRole.ADMIN;
+    const chatRole = chatParticipantExists
+      ? UserChatRole.MEMBER
+      : UserChatRole.ADMIN;
 
     return this.createChatParticipant({
       ...params,

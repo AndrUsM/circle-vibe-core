@@ -20,6 +20,9 @@ import {
   FileVideoServerSocketKeys,
   GatewayNamespaces,
   SendFileMessageChatSocketParams,
+  RequestMessagesWithPaginationChatSocketParams,
+  RequestChatsWithPaginationChatSocketParams,
+  RequestChatParticipantsWithPagniationSocketParams,
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
@@ -254,6 +257,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(ChatSocketCommand.REQUEST_MESSAGES_WITH_PAGINATION)
+  async requestMessagesWithPagination(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: RequestMessagesWithPaginationChatSocketParams,
+  ) {
+    const { chatId, page, pageSize } = params;
+
+    const chats = await this.messageService.getMessagesByChatPaginated(chatId, {
+      page,
+      pageSize,
+    });
+
+    client.emit(ChatSocketCommand.RECEIVE_MESSAGES, chats);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(ChatSocketCommand.REQUEST_CHATS_WITH_PAGINATION)
+  async requestChatsWithPagination(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: RequestChatsWithPaginationChatSocketParams,
+  ) {
+    const { userId, page, pageSize } = params;
+
+    const chats = await this.chatService.getAllPaginated({
+      userId,
+      page,
+      pageSize,
+    });
+
+    client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(ChatSocketCommand.REQUEST_CHAT_PARTICIPANTS_WITH_PAGINATION)
+  async requestChatParticipantsWithPagination(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: RequestChatParticipantsWithPagniationSocketParams,
+  ) {
+    const chatParticipants = await this.participantService.getChatParticipants(params);
+
+    client.emit(ChatSocketCommand.RECEIVE_CHAT_PARTICIPANTS, chatParticipants);
   }
 
   @UseGuards(WsAuthGuard)
