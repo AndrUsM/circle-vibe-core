@@ -255,11 +255,17 @@ export class ChatService {
       distinct: ['chatId'],
     });
     const mappedChatIds = chatIdsByUser.map(({ chatId }) => chatId);
+    const filterByName = params?.name?.length ? {
+      name: {
+          contains: params?.name,
+        },
+    } : {}
     const chats = await this.databaseService.chat.findMany({
       where: {
         id: {
           in: mappedChatIds,
         },
+        ...filterByName,
         hidden: params?.hidden ?? true,
         removed: params?.removed ?? false,
         type: params?.type ?? ChatType.PRIVATE,

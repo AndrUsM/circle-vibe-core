@@ -285,6 +285,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId, page, pageSize } = params;
 
     const chats = await this.chatService.getAllPaginated({
+      name: params?.name,
       userId,
       page,
       pageSize,
