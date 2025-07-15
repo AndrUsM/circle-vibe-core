@@ -23,6 +23,7 @@ import {
   RequestMessagesWithPaginationChatSocketParams,
   RequestChatsWithPaginationChatSocketParams,
   RequestChatParticipantsWithPagniationSocketParams,
+  DEFAULT_PAGINATION_PAGE_SIZE,
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
@@ -45,7 +46,7 @@ import { FILE_VIDEO_SOCKET_URL } from 'src/configuration';
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  #dataLimit = 20;
+  #dataLimit = DEFAULT_PAGINATION_PAGE_SIZE;
 
   fileVideoServerSocket = io(FILE_VIDEO_SOCKET_URL);
 
@@ -72,7 +73,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   async handleConnection(client: Socket, ...args: any[]) {
-    const { userId } = this.#getAuthParams(client);
+    const { userId } = await this.#getAuthParams(client);
 
     if (!userId) {
       return;
@@ -256,7 +257,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       page: 1,
     });
 
-    client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
+    client.emit(ChatSocketCommand.RECEIVE_CHATS, chats);
   }
 
   @UseGuards(WsAuthGuard)
@@ -289,7 +290,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       pageSize,
     });
 
-    client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
+    client.emit(ChatSocketCommand.RECEIVE_CHATS, chats);
   }
 
   @UseGuards(WsAuthGuard)
@@ -298,13 +299,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: RequestChatParticipantsWithPagniationSocketParams,
   ) {
-    const chatParticipants = await this.participantService.getChatParticipants(params);
+    const chatParticipants =
+      await this.participantService.getChatParticipants(params);
 
     client.emit(ChatSocketCommand.RECEIVE_CHAT_PARTICIPANTS, chatParticipants);
+    client.emit(ChatSocketCommand.SCROLL_TO_END_OF_MESSAGES);
   }
 
   @UseGuards(WsAuthGuard)
-  @SubscribeMessage(ChatSocketCommand.REFRESH_CHATS)
+  @SubscribeMessage(ChatSocketCommand.RECEIVE_CHATS)
   async handleRefreshChats(
     @ConnectedSocket() client: Socket,
     @MessageBody() roomName?: string,
@@ -322,12 +325,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     if (roomName) {
-      this.server.to(roomName).emit(ChatSocketCommand.REFRESH_CHATS, chats);
+      this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_CHATS, chats);
 
       return;
     }
 
-    client.emit(ChatSocketCommand.REFRESH_CHATS, chats);
+    client.emit(ChatSocketCommand.RECEIVE_CHATS, chats);
   }
 
   @SubscribeMessage(FileVideoServerSocketKeys.UPLOAD_VIDEO_CHUNK)
@@ -343,12 +346,48 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.fileVideoServerSocket.emit(FileVideoServerSocketKeys.UPLOAD_VIDEO_END);
   }
 
-  #getAuthParams(socket: Socket) {
+  async #getAuthParams(socket: Socket) {
     const { token, personalToken } = (socket.handshake.auth ??
       {}) as SocketAuthParams;
-    const { userId } = this.authService.parseJWT(token, personalToken);
 
-    return { userId: userId ?? undefined };
+    try {
+      const { userId } = this.authService.parseJWT(token, personalToken);
+
+      return { userId: userId ?? undefined };
+    } catch (error) {
+      const userId = await this.#refreshToken(socket, token);
+
+      return {
+        userId,
+      };
+    }
+  }
+
+  async #refreshToken(
+    socket: Socket,
+    authToken: string,
+  ): Promise<number | undefined> {
+    const userId = this.authService.decodeJWT(authToken)?.userId;
+
+    if (!userId) {
+      return undefined;
+    }
+
+    const user = await this.userService.getById(userId);
+
+    if (!user) {
+      return undefined;
+    }
+
+    const token = this.authService.generateJWT(user);
+
+    if (!token) {
+      return undefined;
+    }
+
+    socket.emit(ChatSocketCommand.REFRESH_TOKEN, token);
+
+    return userId;
   }
 
   async #notifyUserAboutNewMessage(client: Socket, chatId: number) {
@@ -361,7 +400,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async #getCurrentUserState(client: Socket) {
-    const fallbackUserId = this.#getAuthParams(client)?.userId;
+    const { userId: fallbackUserId } = await this.#getAuthParams(client);
     const clientId = client.id;
 
     const state =

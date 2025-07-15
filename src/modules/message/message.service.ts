@@ -42,7 +42,7 @@ export class MessageService {
     const take = pageSize;
 
     const query: Prisma.MessageFindManyArgs = {
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
       take,
       skip,
       include: {

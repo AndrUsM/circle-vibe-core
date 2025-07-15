@@ -12,8 +12,11 @@ import { ApiBody, ApiResponse } from '@nestjs/swagger';
 import { UserType, UserRole, ChatType } from '@circle-vibe/shared';
 
 import { UserService } from '../user/user.service';
-import { AuthentificationInput } from './dtos';
-import { AuthorizationInput } from './dtos/authorization.input';
+import {
+  AuthentificationInput,
+  AuthorizationInput,
+  RefreshTokenInputDto,
+} from './dtos';
 import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
 import { ChatService } from '../chat';
@@ -50,6 +53,26 @@ export class AuthController {
         chatId: chat.id,
       });
     }
+  }
+
+  @Post('refresh-token')
+  @HttpCode(200)
+  async refreshToken(@Body() params: RefreshTokenInputDto) {
+    const tokenInfo = this.authService.decodeJWT(params?.token);
+
+    if (!tokenInfo?.userId) {
+      return new BadRequestException();
+    }
+
+    const { userId } = tokenInfo;
+
+    const user = await this.userService.getById(Number(userId));
+
+    if (!user) {
+      return new NotFoundException('User not found');
+    }
+
+    return { token: this.authService.generateJWT(user) };
   }
 
   @Post('sign-in')
