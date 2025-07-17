@@ -167,6 +167,7 @@ model Chat {
   unreadMessagesCount Int       @default(0)
   usersLimit          Int
   removed             Boolean   @default(false)
+  encryptionSecret    String?   @default("Se9XNjAcmbrNoCooRPJq")
 
   lastMessageId Int?
   lastMessage   Message? @relation(fields: [lastMessageId], references: [id])
