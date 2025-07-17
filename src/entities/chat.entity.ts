@@ -22,6 +22,7 @@ export const ChatSchema = z.object({
   lastMessageId: z.number(),
   lastMessage: MessageSchema.optional(),
   removed: z.boolean().default(false),
+  encryptionSecret: z.string().optional(),
 })
 
 export class Chat extends createZodDto(ChatSchema) {}
