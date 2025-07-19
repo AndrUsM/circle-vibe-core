@@ -70,9 +70,21 @@ export class MessageService {
     });
 
     const items = await this.databaseService.message.findMany(query);
+    const mappedMessages = (items ?? []).map((message: Message) => {
+      return {
+        ...message,
+        files: message.files.map((file) => {
+          return {
+            ...file,
+            url: this.fileService.composeFileUrl(file.url),
+            optimizedUrl: this.fileService.composeFileUrl(file.optimizedUrl),
+          } as MessageFile;
+        }),
+      } as Message;
+    });
 
     return {
-      data: (items ?? []) as unknown as Message[],
+      data: mappedMessages,
       totalItems,
       page,
       pageSize,
@@ -257,26 +269,5 @@ export class MessageService {
     };
   }
 
-  async #uploadFile(
-    file: File,
-    fileMeta: UploadFileMetaInputDto,
-    messageId: number,
-  ): Promise<Omit<MessageFile, 'id'>> {
-    const response = await this.uploadFileByEntityType(
-      {
-        ...fileMeta,
-        file: new File([file], fileMeta.fileName, {
-          type: fileMeta.fileType,
-        }),
-        entityType: fileMeta?.entityType ?? MessageFileEntityType.FILE,
-        fileName: fileMeta.fileName,
-        description: fileMeta.description ?? '',
-        url: '',
-        type: fileMeta.type as MessageFileType,
-      },
-      messageId,
-    );
 
-    return response as Omit<MessageFile, 'id'>;
-  }
 }

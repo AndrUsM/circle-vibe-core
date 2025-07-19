@@ -331,10 +331,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@circle-vibe/shared@^1.2.11":
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.11.tgz#dfd2d8b59fe312365f60bcaf19ad6640d48c2e5f"
-  integrity sha512-IiJiRPeZXvReb4pmi2lox+YUvseMa1akL9X2woTjOncyHps9ZBOpqIh9mqQjPQPGAMnhyS/U6SZqQIoigHXFFg==
+"@circle-vibe/shared@^1.2.12":
+  version "1.2.12"
+  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.12.tgz#56a512b0219c6da6baa4f2a47ad19c413e113889"
+  integrity sha512-Hxo8Xkvi+XRvyRNAfqfgF75Q0g86n/d9PMrC9w9rGZDOkSWpi5P+VdAni+81MI4+c4ivK5dbmAbZw6WC5xdUmQ==
 
 "@colors/colors@1.5.0":
   version "1.5.0"
@@ -1136,10 +1136,10 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.4.tgz#d897170a2b0ba51f78a099edccd968f7b103387c"
   integrity sha512-ROFF39F6ZrnzSUEmQQZUar0Jt4xVoP9WnDRdWwF4NNcXs3xBTLgBUDoOwW141y1jP+S8nahIbdxbFC7IShw9Iw==
 
-"@prisma/client@^6.8.2":
-  version "6.8.2"
-  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-6.8.2.tgz#f0af46643604cd38341f285483edc3c3ae7e6651"
-  integrity sha512-5II+vbyzv4si6Yunwgkj0qT/iY0zyspttoDrL3R4BYgLdp42/d2C8xdi9vqkrYtKt9H32oFIukvyw3Koz5JoDg==
+"@prisma/client@^6.12.0":
+  version "6.12.0"
+  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-6.12.0.tgz#e855c76fbad75b9b28ce7879be47bfeaba8ff588"
+  integrity sha512-wn98bJ3Cj6edlF4jjpgXwbnQIo/fQLqqQHPk2POrZPxTlhY3+n90SSIF3LMRVa8VzRFC/Gec3YKJRxRu+AIGVA==
 
 "@prisma/config@6.8.2":
   version "6.8.2"

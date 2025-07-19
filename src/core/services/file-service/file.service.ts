@@ -6,6 +6,8 @@ import {
   UploadImageOutputDto,
   UploadVideoOutputDto,
 } from '@circle-vibe/shared';
+import { MessageFileEntityType } from '@prisma/client';
+import { FILE_SERVER_URL } from 'src/configuration';
 
 @Injectable()
 export class FileService {
@@ -14,6 +16,10 @@ export class FileService {
   private uploadFilesUrl = 'files/upload';
 
   constructor(private readonly httpService: HttpService) {}
+
+  composeFileUrl(urlWithHostname: string) {
+    return urlWithHostname ? `${FILE_SERVER_URL}${urlWithHostname}` : null;
+  }
 
   async uploadFile(file: File): Promise<UploadFileOutputDto | null> {
     const payload = new FormData();
@@ -27,6 +33,44 @@ export class FileService {
 
       return respose.data;
     } catch {
+      return null;
+    }
+  }
+
+  async deleteFile(
+    type: MessageFileEntityType,
+    fileUrlWithoutHostname: string,
+  ) {
+    if (!fileUrlWithoutHostname) {
+      return null;
+    }
+
+    const fileName = fileUrlWithoutHostname.split('/').pop();
+
+    try {
+      if (!type) {
+        return null;
+      }
+
+      if (type === MessageFileEntityType.FILE) {
+        const response = await this.httpService.axiosRef.delete(
+          `${this.uploadFilesUrl}/${fileName}`,
+        );
+        return response.data;
+      }
+
+      if (type === MessageFileEntityType.IMAGE) {
+        const response = await this.httpService.axiosRef.delete(
+          `${this.uploadImagesUrl}/${fileName}`,
+        );
+        return response.data;
+      }
+
+      const response = await this.httpService.axiosRef.delete(
+        `${this.uploadVideo}/${fileUrlWithoutHostname}`,
+      );
+      return response.data;
+    } catch (error) {
       return null;
     }
   }

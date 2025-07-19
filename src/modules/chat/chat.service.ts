@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { addHours } from 'date-fns';
 
+import { FileService } from 'src/core/services';
 import { DatabaseService } from 'src/core';
 import {
   ChatCreateInputDto,
@@ -21,7 +22,7 @@ import { JWT_TOKEN_SECRET } from 'src/configuration';
 import {
   ChatParticipant,
   ChatType,
-  Message,
+  MessageFile,
   Prisma,
   User,
 } from '@prisma/client';
@@ -30,7 +31,10 @@ import {
 export class ChatService {
   defaultUsersLimit = 100;
 
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private fileService: FileService,
+  ) {}
 
   async findById(chatId: number) {
     return this.databaseService.chat.findUnique({
@@ -101,16 +105,17 @@ export class ChatService {
    *
    * @returns Nothing.
    */
-  async deleteChatMessage(chatId: number, messageId: number, senderId: number) {
-    const participantDto =
-      await this.databaseService.chatParticipant.findUnique({
+  async deleteChatMessage(chatId: number, messageId: number, userId: number) {
+    const participantDto = await this.databaseService.chatParticipant.findFirst(
+      {
         where: {
           chatId,
-          id: senderId,
+          userId,
         },
-      });
+      },
+    );
 
-    if (!participantDto?.chatId || participantDto?.chatId !== chatId) {
+    if (!participantDto?.chatId) {
       return;
     }
 
@@ -120,18 +125,19 @@ export class ChatService {
       },
       select: {
         senderId: true,
+        files: true,
       },
     });
 
-    if (!messageDto?.senderId || messageDto?.senderId === senderId) {
+    if (!messageDto?.senderId || messageDto?.senderId !== participantDto.id) {
       return;
     }
 
-    await this.databaseService.messageFile.delete({
-      where: {
-        id: messageId,
-      },
-    });
+    await this.databaseService.$queryRawUnsafe(
+      `DELETE FROM "MessageFile" WHERE "messageId" = ${messageId}`,
+    );
+
+    this.#deleteFileMessageWithFiles(messageDto.files);
 
     await this.databaseService.message.delete({
       where: {
@@ -255,11 +261,13 @@ export class ChatService {
       distinct: ['chatId'],
     });
     const mappedChatIds = chatIdsByUser.map(({ chatId }) => chatId);
-    const filterByName = params?.name?.length ? {
-      name: {
-          contains: params?.name,
-        },
-    } : {}
+    const filterByName = params?.name?.length
+      ? {
+          name: {
+            contains: params?.name,
+          },
+        }
+      : {};
     const chats = await this.databaseService.chat.findMany({
       where: {
         id: {
@@ -453,5 +461,12 @@ export class ChatService {
         userId,
       },
     });
+  }
+
+  #deleteFileMessageWithFiles(files: MessageFile[]): Promise<void[]> {
+    const promises = files.map((file) =>
+      this.fileService.deleteFile(file.entityType, file.url),
+    );
+    return Promise.all(promises);
   }
 }

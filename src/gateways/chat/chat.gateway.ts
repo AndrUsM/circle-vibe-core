@@ -24,6 +24,7 @@ import {
   RequestChatsWithPaginationChatSocketParams,
   RequestChatParticipantsWithPagniationSocketParams,
   DEFAULT_PAGINATION_PAGE_SIZE,
+  convertContentFromBase64,
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
@@ -42,6 +43,8 @@ import { FILE_VIDEO_SOCKET_URL } from 'src/configuration';
 @WebSocketGateway(3002, {
   cors: true,
   namespace: `/${GatewayNamespaces.CHAT_MAIN}`,
+  transports: ['websocket'],
+  httpCompression: true,
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -142,7 +145,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
-    await this.#notifyUserAboutNewMessage(client, chatId);
+
+    this.#notifyUserAboutNewMessage(client, chatId);
   }
 
   @UseGuards(WsAuthGuard)
@@ -157,6 +161,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.messageService.create({
       ...message,
+      content: convertContentFromBase64(message.content),
       files: [],
     });
 

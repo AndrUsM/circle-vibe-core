@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatParticipant, UserChatRole } from '@prisma/client';
 import { DatabaseService } from 'src/core';
 import { GetChatParticipantInput } from './params';
-import { CreateChatParticipantInput } from './dtos';
+import { CreateChatParticipantInput, UpdateChatParticipantInput } from './dtos';
 
 @Injectable()
 export class ParticipantService {
@@ -32,6 +32,27 @@ export class ParticipantService {
         user: true,
       },
     });
+  }
+
+  async updateChatParticipant(chatId: number, participantId: number, params: UpdateChatParticipantInput){
+    const chatParticipant = await this.databaseService.chatParticipant.findUnique({
+      where: {
+        id: participantId,
+      },
+    })
+
+    return this.databaseService.chatParticipant.update({
+      where: {
+        id: participantId,
+      },
+      include: {
+        user: true,
+      },
+      data: {
+        ...chatParticipant,
+        ...params,
+      },
+    })
   }
 
   async getOrCreateChatParticipant(

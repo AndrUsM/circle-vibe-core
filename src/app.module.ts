@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule, DatabaseService } from './core/database';
-import { FileServiceModule, SecurityModule } from './core/services';
+import { FileServiceModule } from './core/services';
 import { ChatGatewayModule } from './gateways/chat';
 
 import {
@@ -25,7 +25,6 @@ import {
     ChatGatewayModule,
     ParticipantModule,
     ChatInviteModule,
-    SecurityModule,
     ParticipantGatewayStateModule,
   ],
   providers: [DatabaseService],

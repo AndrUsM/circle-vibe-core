@@ -26,6 +26,7 @@ import { ChatInviteService } from '../chat-invites';
 import { HashedTokenParams } from '../auth/types';
 
 import { JwtAuthGuard } from 'src/guards';
+import { UpdateChatParticipantInput } from '../participant/dtos';
 
 @Controller('chat')
 export class ChatController {
@@ -72,6 +73,16 @@ export class ChatController {
     return this.chatService.getChatParticipants(Number(chatId));
   }
 
+  @Put(':id/participants/:participantId')
+  @UseGuards(JwtAuthGuard)
+  async updateChatParticipant(@Param('id') chatId: number, @Param('participantId') participantId: number, @Body() payload: UpdateChatParticipantInput) {
+    if (!chatId || !participantId) {
+      return new BadRequestException();
+    }
+
+    return this.participantService.updateChatParticipant(Number(chatId), Number(participantId), payload);
+  }
+
   @Get(':id/user-to-invite')
   getChatUsersToInvite(
     @Param('id') chatId: number,
@@ -110,9 +121,9 @@ export class ChatController {
     }
 
     return this.chatService.deleteChatMessage(
-      chatId,
-      messageId,
-      request?.userId,
+      Number(chatId),
+      Number(messageId),
+      Number(request?.userId),
     );
   }
 
