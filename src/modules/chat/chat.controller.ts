@@ -27,6 +27,8 @@ import { HashedTokenParams } from '../auth/types';
 
 import { JwtAuthGuard } from 'src/guards';
 import { UpdateChatParticipantInput } from '../participant/dtos';
+import { MessageService } from '../message';
+import { MessageUpdateInputDto } from '../message/dtos';
 
 @Controller('chat')
 export class ChatController {
@@ -34,6 +36,7 @@ export class ChatController {
     private chatService: ChatService,
     private participantService: ParticipantService,
     private userService: UserService,
+    private messageService: MessageService,
     private chatInviteService: ChatInviteService,
   ) {}
 
@@ -71,6 +74,26 @@ export class ChatController {
     }
 
     return this.chatService.getChatParticipants(Number(chatId));
+  }
+
+  @Put(':id/message/:messageId')
+  @UseGuards(JwtAuthGuard)
+  async updateMessage(@Param('id') chatId: number, @Param('messageId') messageId: number, @Body() payload: MessageUpdateInputDto) {
+    if (!chatId || !messageId) {
+      return new BadRequestException();
+    }
+
+    return this.messageService.updateMessage(Number(chatId), Number(messageId), payload);
+  }
+
+  @Get(':id/message/:messageId')
+  @UseGuards(JwtAuthGuard)
+  async getMessageById(@Param('id') chatId: number, @Param('messageId') messageId: number) {
+    if (!chatId || !messageId) {
+      return new BadRequestException();
+    }
+
+    return this.messageService.getMessageById(Number(messageId), Number(chatId));
   }
 
   @Put(':id/participants/:participantId')

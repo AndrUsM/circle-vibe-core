@@ -15,7 +15,7 @@ import {
   MessageFilesInputDto,
   MessageFileVideoCreateDto,
   MessagesPaginatedInputDto,
-  UploadFileMetaInputDto,
+  MessageUpdateInputDto,
 } from './dtos';
 import { DatabaseService } from 'src/core';
 import {
@@ -149,6 +149,48 @@ export class MessageService {
         id: messageId,
       },
     });
+  }
+
+  getMessageById(id: number, chatId: number) {
+    return this.databaseService.message.findUnique({
+      where: {
+        chatId,
+        id,
+      },
+      include: {
+        files: true,
+        sender: true,
+        thread: true,
+      }
+    }) as Promise<Message | null>;
+  }
+
+  async updateMessage(chatId: number, messageId: number, payload: MessageUpdateInputDto): Promise<Message | null> {
+    // const query: string = `UPDATE "Message" SET "content" = '${payload.content}' WHERE "id" = ${messageId} AND "chatId" = ${chatId}`;
+
+    // const query: string = `UPDATE "Message" SET "content" = '${payload.content}' WHERE "id" = ${messageId} AND "chatId" = ${chatId};`;
+
+    // await this.databaseService.$queryRaw`${query}`;
+    await this.databaseService.message.update({
+      where: {
+        id: messageId,
+        chatId,
+      },
+      data: {
+        content: payload.content,
+      },
+    })
+
+    return this.databaseService.message.findUnique({
+      where: {
+        id: messageId,
+      },
+      include: {
+        files: true,
+        sender: true,
+        thread: true,
+      }
+    }) as Promise<Message | null>;
   }
 
   async createFileMessage(payload: SendFileMessageChatSocketParams) {

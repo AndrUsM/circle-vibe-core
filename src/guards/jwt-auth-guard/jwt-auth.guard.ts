@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import {  } from '@circle-vibe/shared';
+import { isTokenExpired } from '@circle-vibe/shared';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { HashedTokenParams } from 'src/modules/auth/types';
 
@@ -14,11 +14,15 @@ export class JwtAuthGuard implements CanActivate {
     const token = authHeader;
     if (!token) throw new UnauthorizedException('Token missing');
 
+    if (isTokenExpired(token)) {
+      throw new UnauthorizedException('Token expired');
+    }
+
     try {
-      const decoded = jwt.decode(token) as HashedTokenParams;
+      const decoded = jwt.decode(token) as jwt.JwtPayload & HashedTokenParams;
       request.userId = decoded?.userId;
 
-      return true;
+      return decoded?.exp ? !isTokenExpired(decoded?.exp) : false;
     } catch (err) {
       throw new UnauthorizedException('Invalid or expired token');
     }

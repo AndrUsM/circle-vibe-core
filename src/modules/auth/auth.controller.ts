@@ -2,10 +2,13 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   NotFoundException,
   Param,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
 
@@ -21,6 +24,8 @@ import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
 import { ChatService } from '../chat';
 import { ParticipantService } from '../participant/participant.service';
+import { JwtAuthGuard } from 'src/guards';
+import { HashedTokenParams } from './types';
 
 @Controller('auth')
 export class AuthController {
@@ -53,6 +58,17 @@ export class AuthController {
         chatId: chat.id,
       });
     }
+  }
+
+  @Get('current')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async getCurrentUser(@Req() request: Request & HashedTokenParams) {
+    if(!request?.userId) {
+      return new BadRequestException();
+    }
+
+    return this.userService.getById(Number(request?.userId));
   }
 
   @Post('refresh-token')
