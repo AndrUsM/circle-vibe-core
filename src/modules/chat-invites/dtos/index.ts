@@ -1,1 +1,1 @@
-export * from './create-chat-invite-input.dto';
+export * from './create-chat-invite.input';

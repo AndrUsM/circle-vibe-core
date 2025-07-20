@@ -1,4 +1,4 @@
-import { InviteTokenInputDto } from './invite-token-input.dto';
+import { InviteTokenInputDto } from './invite-token.input';
 
 export interface InviteTokenOutputDto {
   isExpired: boolean;

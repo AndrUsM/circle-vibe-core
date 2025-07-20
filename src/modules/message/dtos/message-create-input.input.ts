@@ -1,5 +1,5 @@
 import { MessageFile, MessageType } from "@circle-vibe/shared";
-import { MessageFilesInputDto } from "./message-files-input.dto";
+import { MessageFilesInputDto } from "./message-files.input";
 
 export interface MessageCreateInputDto {
   content: string;
