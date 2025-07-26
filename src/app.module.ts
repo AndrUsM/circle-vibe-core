@@ -12,6 +12,7 @@ import {
   ParticipantGatewayStateModule,
   ChatInviteModule,
   ChatModule,
+  ThreadModule
 } from './modules';
 
 @Module({
@@ -26,6 +27,7 @@ import {
     ParticipantModule,
     ChatInviteModule,
     ParticipantGatewayStateModule,
+    ThreadModule,
   ],
   providers: [DatabaseService],
 })

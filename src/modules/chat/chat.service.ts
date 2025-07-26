@@ -286,6 +286,7 @@ export class ChatService {
         chatId: {
           in: mappedChatIds,
         },
+        threadId: null,
       },
       include: {
         files: true,

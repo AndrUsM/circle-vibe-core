@@ -6,3 +6,4 @@ export * from './participant-gateway-state';
 export * from './participant';
 export * from './chat-invites';
 export * from './chat';
+export * from './thread';

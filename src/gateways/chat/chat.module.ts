@@ -4,10 +4,12 @@ import {
   AuthService,
   ChatService,
   MessageService,
+  ThreadService,
   UserService,
 } from 'src/modules';
 import { FileService } from 'src/core/services';
 import { ParticipantService, ParticipantGatewayStateService } from 'src/modules';
+import { ChatGatewayService } from './chat-gateway.service';
 
 @Module({
   providers: [
@@ -19,6 +21,8 @@ import { ParticipantService, ParticipantGatewayStateService } from 'src/modules'
     FileService,
     ParticipantService,
     ParticipantGatewayStateService,
+    ChatGatewayService,
+    ThreadService,
   ],
 })
 export class ChatGatewayModule {}

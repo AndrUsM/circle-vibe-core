@@ -119,34 +119,24 @@ model Message {
   removed     Boolean       @default(false)
   hidden      Boolean       @default(false)
 
-  chatId   Int
-  senderId Int
-  threadId Int?
+  childThreadId Int?
+  chatId        Int
+  senderId      Int
+  threadId      Int?
 
-  sender ChatParticipant @relation(fields: [senderId], references: [id])
-  thread Thread?         @relation(fields: [threadId], references: [id])
+  sender       ChatParticipant @relation(fields: [senderId], references: [id])
+  thread       Thread?         @relation(fields: [threadId], references: [id])
 }
 
 model Thread {
-  id           Int                 @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   messages     Message[]
-  participants ThreadParticipant[]
+  participants ChatParticipant[]
 
-  chatId Int
+  chatId          Int
+  parentMessageId Int
 
   chat Chat @relation(fields: [chatId], references: [id])
-}
-
-model ThreadParticipant {
-  id Int @id @default(autoincrement())
-
-  chatParticipantId Int
-  threadId          Int
-
-  chatParticipant ChatParticipant @relation(fields: [chatParticipantId], references: [id])
-  thread          Thread          @relation(fields: [threadId], references: [id])
-
-  @@unique([chatParticipantId, threadId])
 }
 
 model Chat {
@@ -184,8 +174,8 @@ model ChatParticipant {
   chatId Int
 
   messages Message[]
-  threads  ThreadParticipant[]
-  user     User                @relation(fields: [userId], references: [id])
+  threads  Thread[]
+  user     User      @relation(fields: [userId], references: [id])
 }
 
 model ChatInvite {
