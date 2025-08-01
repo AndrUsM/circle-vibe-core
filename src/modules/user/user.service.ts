@@ -5,12 +5,12 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
 import { DatabaseService } from 'src/core';
-import { User } from 'src/entities/user.entity';
-import { CreateUserDtoInput, GenerateJwtTokenInput } from './dtos';
-import { UserChatStatus } from '@circle-vibe/shared';
-import { composeUserFromAuthorizationInput } from './utils';
+import { CreateUserDtoInput, GenerateJwtTokenInput, UpdateUserDtoInput } from './dtos';
+import { User, UserChatStatus } from '@circle-vibe/shared';
+import { composeUserFromAuthorizationInput, composeUserUpdateInput } from './utils';
 import { FileService } from 'src/core/services';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
+import { Prisma, UserRole } from '@prisma/client';
 
 
 @Injectable()
@@ -25,6 +25,31 @@ export class UserService {
     });
 
     return (user as User) ?? null;
+  }
+
+  async updateUser(id: number, updateUserInputDto: UpdateUserDtoInput): Promise<User | null> {
+    const user = await this.databaseService.user.findUnique({
+      where: {
+        id
+      },
+    }) as User | null;
+
+    if (!user) {
+      return null;
+    }
+
+    const updatedUser = await this.databaseService.user.update({
+      where: {
+        id
+      },
+      data: {
+        ...composeUserUpdateInput(user),
+        ...updateUserInputDto,
+        role: updateUserInputDto?.role as UserRole ?? user.role
+      }
+    });
+
+    return updatedUser as User;
   }
 
   async matchUserByPersonalKey(privateKey: string): Promise<User | null> {

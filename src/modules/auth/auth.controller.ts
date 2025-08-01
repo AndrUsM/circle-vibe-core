@@ -7,6 +7,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import {
   AuthentificationInput,
   AuthorizationInput,
   RefreshTokenInputDto,
+  RestorePasswordInputDto,
 } from './dtos';
 import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
@@ -64,7 +66,7 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async getCurrentUser(@Req() request: Request & HashedTokenParams) {
-    if(!request?.userId) {
+    if (!request?.userId) {
       return new BadRequestException();
     }
 
@@ -131,6 +133,33 @@ export class AuthController {
     const token = this.authService.generateJWT(user);
 
     return { token, user };
+  }
+
+  @Put('restore-password')
+  @HttpCode(200)
+  async restorePassword(@Body() params: RestorePasswordInputDto) {
+    if (!params || !Object.values(params).length) {
+      return new BadRequestException();
+    }
+
+    const user = await this.userService.matchUserByEmail(params.email);
+
+    if (!user) {
+      return new NotFoundException('User not found');
+    }
+
+    const encryptedPassword = this.userService.encryptPassword(params.password);
+
+    await this.userService.updateUser(user.id, {
+      password: encryptedPassword,
+    });
+
+    const token = this.authService.generateJWT(user);
+
+    return {
+      token,
+      user,
+    };
   }
 
   @Post('sign-up')

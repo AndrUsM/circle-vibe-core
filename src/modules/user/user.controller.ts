@@ -1,6 +1,9 @@
-import { BadRequestException, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+
 import { UserService } from './user.service';
+
 import { AuthService } from '../auth';
+import { UpdateUserDtoInput } from './dtos';
 
 @Controller('user')
 export class UserController {
@@ -38,5 +41,17 @@ export class UserController {
     }
 
     return this.userService.getById(Number(userId));
+  }
+
+  @Put('/:id')
+  @HttpCode(200)
+  async changeUserChatStatus(@Param('id') userId: number, @Body() params: UpdateUserDtoInput) {
+    const updatedUser = await this.userService.updateUser(Number(userId), params);
+
+    if (!updatedUser) {
+      return new BadRequestException();
+    }
+
+    return updatedUser
   }
 }
