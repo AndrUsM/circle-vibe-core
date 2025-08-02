@@ -23,6 +23,7 @@ import {
   RequestChatParticipantsWithPagniationSocketParams,
   DEFAULT_PAGINATION_PAGE_SIZE,
   convertContentFromBase64,
+  NotifyAboutTypingSocketParams,
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
@@ -122,6 +123,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
 
     this.#notifyUserAboutNewMessage(client, chatId);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(ChatSocketCommand.MESSAGE_TYPE_START_TYPING)
+  async handleNotifyAboutTypingStart(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: NotifyAboutTypingSocketParams,
+  ) {
+    const roomName = String(params.chatId);
+    client.broadcast
+      .to(roomName)
+      .emit(ChatSocketCommand.MESSAGE_TYPE_START_TYPING, params);
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage(ChatSocketCommand.MESSAGE_TYPE_STOP_TYPING)
+  async handleNotifyAboutTypingStop(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() params: NotifyAboutTypingSocketParams,
+  ) {
+    const roomName = String(params.chatId);
+    client.broadcast
+      .to(roomName)
+      .emit(ChatSocketCommand.MESSAGE_TYPE_STOP_TYPING, params);
   }
 
   @UseGuards(WsAuthGuard)
