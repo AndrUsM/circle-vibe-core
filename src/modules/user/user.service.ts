@@ -38,6 +38,9 @@ export class UserService {
       return null;
     }
 
+    const password =  updateUserInputDto?.password?.length ? this.encryptPassword(updateUserInputDto.password) : null;
+    const updatedPassword = password ? { password } : {};
+
     const updatedUser = await this.databaseService.user.update({
       where: {
         id
@@ -45,6 +48,7 @@ export class UserService {
       data: {
         ...composeUserUpdateInput(user),
         ...updateUserInputDto,
+        ...updatedPassword,
         role: updateUserInputDto?.role as UserRole ?? user.role
       }
     });
