@@ -38,7 +38,7 @@ export class UserService {
       return null;
     }
 
-    const password =  updateUserInputDto?.password?.length ? this.encryptPassword(updateUserInputDto.password) : null;
+    const password = updateUserInputDto?.password?.length ? this.encryptPassword(updateUserInputDto.password) : null;
     const updatedPassword = password ? { password } : {};
 
     const updatedUser = await this.databaseService.user.update({

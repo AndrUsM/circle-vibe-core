@@ -148,12 +148,9 @@ export class AuthController {
       return new NotFoundException('User not found');
     }
 
-    const encryptedPassword = this.userService.encryptPassword(params.password);
-
     await this.userService.updateUser(user.id, {
-      password: encryptedPassword,
+      password: params.password,
     });
-
     const token = this.authService.generateJWT(user);
 
     return {

@@ -12,6 +12,7 @@ enum MessageFileEntityType {
   IMAGE
   VIDEO
   FILE
+  AUDIO
 }
 
 enum MessageFileType {
@@ -124,8 +125,8 @@ model Message {
   senderId      Int
   threadId      Int?
 
-  sender       ChatParticipant @relation(fields: [senderId], references: [id])
-  thread       Thread?         @relation(fields: [threadId], references: [id])
+  sender ChatParticipant @relation(fields: [senderId], references: [id])
+  thread Thread?         @relation(fields: [threadId], references: [id])
 }
 
 model Thread {
@@ -192,4 +193,13 @@ model ChatParticipantGatewayState {
   id       Int    @id @default(autoincrement())
   clientId String @unique
   userId   Int
+}
+
+model UserConfirmation {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  email     String
+  code      String
+  createdAt DateTime @default(now())
+  confirmed Boolean  @default(false)
 }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule, DatabaseService } from './core/database';
-import { FileServiceModule } from './core/services';
+import { FileServiceModule, EmailServiceModule, EmailServiceHttpModule } from './core/services';
 import { ChatGatewayModule } from './gateways/chat';
 
 import {
@@ -14,6 +14,7 @@ import {
   ChatModule,
   ThreadModule
 } from './modules';
+import { UserConfirmationModule } from './modules/user-confirmation';
 
 @Module({
   imports: [
@@ -21,13 +22,16 @@ import {
     UsersModule,
     AuthModule,
     FileServiceModule,
+    EmailServiceModule,
     ChatModule,
     MessageModule,
     ChatGatewayModule,
     ParticipantModule,
     ChatInviteModule,
+    UserConfirmationModule,
     ParticipantGatewayStateModule,
     ThreadModule,
+    EmailServiceHttpModule,
   ],
   providers: [DatabaseService],
 })
