@@ -240,7 +240,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: RequestMessagesWithPaginationChatSocketParams,
   ) {
-    const { chatId, page, pageSize, threadId } = params;
+    const { chatId, page, content, pageSize, senderIds, threadId } = params;
 
     const messages = await this.messageService.getMessagesByChatPaginated(
       chatId,
@@ -250,6 +250,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
       {
         threadId,
+        content,
+        senderIds,
       },
     );
 

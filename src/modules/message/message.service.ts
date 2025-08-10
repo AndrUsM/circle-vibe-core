@@ -39,6 +39,12 @@ export class MessageService {
     const threadId = filters?.threadId;
     const skip = (page - 1) * pageSize;
     const take = pageSize;
+    const filterByContent = filters?.content?.length
+      ? { content: { contains: filters.content } }
+      : {};
+    const filterBySenderIds = filters?.senderIds?.length
+      ? { senderId: { in: filters.senderIds } }
+      : {};
 
     const query: Prisma.MessageFindManyArgs = {
       orderBy: { createdAt: 'desc' },
@@ -62,6 +68,8 @@ export class MessageService {
         removed: false,
         hidden: false,
         threadId: threadId ? Number(threadId) : null,
+        ...filterByContent,
+        ...filterBySenderIds,
       },
     };
 
@@ -70,6 +78,8 @@ export class MessageService {
         chatId,
         removed: false,
         hidden: false,
+        ...filterByContent,
+        ...filterBySenderIds,
       },
     });
 
@@ -85,6 +95,8 @@ export class MessageService {
         threadId: {
           not: null,
         },
+        ...filterByContent,
+        ...filterBySenderIds,
       },
       include: {
         files: true,
