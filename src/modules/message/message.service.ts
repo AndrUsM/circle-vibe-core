@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { MessageFileEntityType, MessageFileType, Prisma } from '@prisma/client';
 
 import {
   Message,
@@ -19,7 +20,6 @@ import {
   MessageUpdateInputDto,
 } from './dtos';
 import { DatabaseService } from 'src/core';
-import { MessageFileEntityType, MessageFileType, Prisma } from '@prisma/client';
 import { FileService } from 'src/core/services';
 import { GetMessagesByChatPaginatedParams } from './params';
 
