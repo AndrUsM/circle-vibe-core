@@ -10,12 +10,12 @@ export class UserConfirmationController {
   ) {}
 
   @Post('generate-code')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async generateConfirmationCode(
     @Body() userConfirmationGenerateCodeInputDto: UserConfirmationGenerateCode,
   ) {
     if (!userConfirmationGenerateCodeInputDto?.email) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const response = await this.userConfirmationService.generateConfirmationCode(
@@ -23,14 +23,15 @@ export class UserConfirmationController {
     );
 
     if (!response) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
   }
 
   @Post()
+  @HttpCode(HttpStatus.OK)
   async confirmAccount(@Body() confirmAccountInputDto: UserConfirmationConfirmInput) {
     if (!confirmAccountInputDto?.email || !confirmAccountInputDto?.code) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     return this.userConfirmationService.confirmAccount(confirmAccountInputDto);

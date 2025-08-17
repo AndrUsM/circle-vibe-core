@@ -47,7 +47,7 @@ export class MessageController {
     const chat = await this.chatService.findById(chatId);
 
     if (chat === null) {
-      return new NotFoundException();
+      throw new NotFoundException();
     }
 
     const params: MessagesPaginatedInputDto = {

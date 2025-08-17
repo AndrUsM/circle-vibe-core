@@ -1,4 +1,14 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 
 import { UserService } from './user.service';
 
@@ -18,7 +28,7 @@ export class UserController {
     const isUseExist = await this.userService.getById(userId);
 
     if (!isUseExist) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     await this.userService.uploadAvatar(userId, file);
@@ -30,28 +40,40 @@ export class UserController {
   @HttpCode(200)
   async getUserByToken(@Param('token') token: string) {
     if (!token) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const payload = this.authService.decodeJWT(token);
     const userId = payload?.userId;
 
     if (!userId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return this.userService.getById(Number(userId));
+    const user = await this.userService.getById(Number(userId));
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return user;
   }
 
   @Put('/:id')
   @HttpCode(200)
-  async changeUserChatStatus(@Param('id') userId: number, @Body() params: UpdateUserDtoInput) {
-    const updatedUser = await this.userService.updateUser(Number(userId), params);
+  async changeUserChatStatus(
+    @Param('id') userId: number,
+    @Body() params: UpdateUserDtoInput,
+  ) {
+    const updatedUser = await this.userService.updateUser(
+      Number(userId),
+      params,
+    );
 
     if (!updatedUser) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return updatedUser
+    return updatedUser;
   }
 }

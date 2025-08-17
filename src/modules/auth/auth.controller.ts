@@ -67,10 +67,16 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getCurrentUser(@Req() request: Request & HashedTokenParams) {
     if (!request?.userId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return this.userService.getById(Number(request?.userId));
+    const user = await this.userService.getById(Number(request?.userId));
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return user;
   }
 
   @Post('refresh-token')
@@ -79,7 +85,7 @@ export class AuthController {
     const tokenInfo = this.authService.decodeJWT(params?.token);
 
     if (!tokenInfo?.userId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const { userId } = tokenInfo;
@@ -87,10 +93,12 @@ export class AuthController {
     const user = await this.userService.getById(Number(userId));
 
     if (!user) {
-      return new NotFoundException('User not found');
+      throw new BadRequestException();
     }
 
-    return { token: this.authService.generateJWT(user) };
+    return {
+      token: this.authService.generateJWT(user),
+    };
   }
 
   @Post('sign-in')
@@ -112,13 +120,13 @@ export class AuthController {
    */
   async authentificate(@Body() params: AuthentificationInput) {
     if (!params || !Object.values(params).length) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const user = await this.userService.matchUserByEmail(params.email);
 
     if (!user) {
-      return new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const isPasswordsMatch = this.userService.comparePasswords(
@@ -127,7 +135,7 @@ export class AuthController {
     );
 
     if (!isPasswordsMatch) {
-      return new BadRequestException('User not found');
+      throw new BadRequestException('User not found');
     }
 
     const token = this.authService.generateJWT(user);
@@ -139,13 +147,13 @@ export class AuthController {
   @HttpCode(200)
   async restorePassword(@Body() params: RestorePasswordInputDto) {
     if (!params || !Object.values(params).length) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const user = await this.userService.matchUserByEmail(params.email);
 
     if (!user) {
-      return new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
 
     await this.userService.updateUser(user.id, {
@@ -177,7 +185,7 @@ export class AuthController {
    */
   async authorization(@Body() params: AuthorizationInput) {
     if (!params || !Object.values(params).length) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const isUserWithTheSameEmailExists =
@@ -186,11 +194,11 @@ export class AuthController {
       await this.userService.checkExistence(params);
 
     if (isUserWithTheSameEmailExists?.id || isUserWIthTheSamePhoneExists) {
-      return new BadRequestException('User already exists');
+      throw new BadRequestException('User already exists');
     }
 
     if (!comparePasswords(params)) {
-      return new BadRequestException('Passwords do not match');
+      throw new BadRequestException('Passwords do not match');
     }
 
     const encryptedPassword = this.userService.encryptPassword(params.password);
@@ -206,7 +214,7 @@ export class AuthController {
     if (createdUser?.id) {
       return createdUser;
     } else {
-      return new BadRequestException('User not created');
+      throw new BadRequestException('User not created');
     }
   }
 }

@@ -57,11 +57,14 @@ export class ChatController {
     description: 'Request body',
   })
   @HttpCode(200)
-  updateChat(@Param('id') chatId: number, @Body() params: ChatUpdateInputDto) {
-    const chat = this.chatService.findById(chatId);
+  async updateChat(
+    @Param('id') chatId: number,
+    @Body() params: ChatUpdateInputDto,
+  ) {
+    const chat = await this.chatService.findById(chatId);
 
     if (!chat) {
-      return new NotFoundException();
+      throw new NotFoundException();
     }
 
     return this.chatService.update(chatId, params);
@@ -78,47 +81,69 @@ export class ChatController {
 
   @Put(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  async updateMessage(@Param('id') chatId: number, @Param('messageId') messageId: number, @Body() payload: MessageUpdateInputDto) {
+  async updateMessage(
+    @Param('id') chatId: number,
+    @Param('messageId') messageId: number,
+    @Body() payload: MessageUpdateInputDto,
+  ) {
     if (!chatId || !messageId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return this.messageService.updateMessage(Number(chatId), Number(messageId), payload);
+    return this.messageService.updateMessage(
+      Number(chatId),
+      Number(messageId),
+      payload,
+    );
   }
 
   @Get(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  async getMessageById(@Param('id') chatId: number, @Param('messageId') messageId: number) {
+  async getMessageById(
+    @Param('id') chatId: number,
+    @Param('messageId') messageId: number,
+  ) {
     if (!chatId || !messageId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return this.messageService.getMessageById(Number(messageId), Number(chatId));
+    return this.messageService.getMessageById(
+      Number(messageId),
+      Number(chatId),
+    );
   }
 
   @Put(':id/participants/:participantId')
   @UseGuards(JwtAuthGuard)
-  async updateChatParticipant(@Param('id') chatId: number, @Param('participantId') participantId: number, @Body() payload: UpdateChatParticipantInput) {
+  async updateChatParticipant(
+    @Param('id') chatId: number,
+    @Param('participantId') participantId: number,
+    @Body() payload: UpdateChatParticipantInput,
+  ) {
     if (!chatId || !participantId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
-    return this.participantService.updateChatParticipant(Number(chatId), Number(participantId), payload);
+    return this.participantService.updateChatParticipant(
+      Number(chatId),
+      Number(participantId),
+      payload,
+    );
   }
 
   @Get(':id/user-to-invite')
-  getChatUsersToInvite(
+  async getChatUsersToInvite(
     @Param('id') chatId: number,
     @Query('chatParticipantId') chatParticipantId: number,
     @Query('username') username: string,
-    @Query("personalTargetUserToken") personalTargetUserToken?: string,
+    @Query('personalTargetUserToken') personalTargetUserToken?: string,
   ) {
     const hasQueryParams = username || personalTargetUserToken;
     if (!chatParticipantId || !chatId || !hasQueryParams) {
-      return null;
+      throw new BadRequestException();
     }
 
-    const user =  this.chatService.findUserForInvitation({
+    const user = await this.chatService.findUserForInvitation({
       chatParticipantId: Number(chatParticipantId),
       chatId: Number(chatId),
       username,
@@ -126,7 +151,7 @@ export class ChatController {
     });
 
     if (!user) {
-      return new NotFoundException();
+      throw new NotFoundException();
     }
 
     return user;
@@ -140,7 +165,7 @@ export class ChatController {
     @Param('messageId') messageId: number,
   ) {
     if (!request?.userId) {
-      return new UnauthorizedException();
+      throw new UnauthorizedException();
     }
 
     return this.chatService.deleteChatMessage(
@@ -174,7 +199,6 @@ export class ChatController {
     status: 200,
     description: 'Link for invite has been successfully created',
   })
-  @HttpCode(201)
   @Post(':id/invite')
   async createInviteLink(
     @Param('id') chatId: number,
@@ -184,7 +208,7 @@ export class ChatController {
     const fromChatParticipantId = body?.fromChatParticipantId;
 
     if (!chatId || !body?.targetUserId || !fromChatParticipantId) {
-      return new BadRequestException();
+      throw new BadRequestException();
     }
 
     const { token, expirationDate } =
@@ -216,18 +240,17 @@ export class ChatController {
     description: 'The ID of the chat',
     required: true,
   })
-  @HttpCode(200)
   @Get('accept-invite-token')
   async acceptInviteToken(@Query('token') token: string) {
     const tokenInformation = await this.chatService.validateInviteToken(token);
     const { isExpired, isValid, data } = tokenInformation;
 
     if (isExpired) {
-      return new BadRequestException('invite-token.is-expired');
+      throw new BadRequestException('invite-token.is-expired');
     }
 
     if (!isValid || !data) {
-      return new BadRequestException('invite-token.invalid');
+      throw new BadRequestException('invite-token.invalid');
     }
 
     const isJoined = await this.chatService.isChatParticipantExist(
@@ -241,15 +264,15 @@ export class ChatController {
       );
 
     if (!targetUser) {
-      return new BadRequestException('invite-token.user-not-found');
+      throw new BadRequestException('invite-token.user-not-found');
     }
 
     if (fromChatParticipant?.chatRole !== UserChatRole.ADMIN) {
-      return new BadRequestException('invite-token.user-is-not-admin');
+      throw new BadRequestException('invite-token.user-is-not-admin');
     }
 
     if (isJoined) {
-      return new BadRequestException('invite-token.already-joined');
+      throw new BadRequestException('invite-token.already-joined');
     }
 
     const chatParticipant = await this.participantService.createChatParticipant(
