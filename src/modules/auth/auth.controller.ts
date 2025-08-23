@@ -198,7 +198,7 @@ export class AuthController {
     }
 
     if (!comparePasswords(params)) {
-      throw new BadRequestException('Passwords do not match');
+      throw new NotFoundException('Passwords do not match');
     }
 
     const encryptedPassword = this.userService.encryptPassword(params.password);
