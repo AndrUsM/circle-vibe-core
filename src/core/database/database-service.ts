@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient,  } from '@prisma/client';
+
+import {ENCRIPTION_FIELDS_EXTENSION} from './constants';
 
 @Injectable()
 export class DatabaseService
@@ -7,7 +9,10 @@ export class DatabaseService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
-    super();
+    super({
+      errorFormat: 'minimal',
+    });
+    this.$extends(ENCRIPTION_FIELDS_EXTENSION)
   }
 
   async onModuleInit() {
