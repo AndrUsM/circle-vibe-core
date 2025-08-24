@@ -5,9 +5,10 @@ import {
   UploadFileOutputDto,
   UploadImageOutputDto,
   UploadVideoOutputDto,
+  ConversationBucketNameEnum,
 } from '@circle-vibe/shared';
 import { MessageFileEntityType } from '@prisma/client';
-import { FILE_SERVER_CONVERSATIONS_BUCKET, FILE_SERVER_URL } from 'src/configuration';
+import { FILE_SERVER_URL } from 'src/configuration';
 
 @Injectable()
 export class FileService {
@@ -17,8 +18,8 @@ export class FileService {
 
   constructor(private readonly httpService: HttpService) {}
 
-  composeFileUrl(urlWithHostname: string) {
-    return urlWithHostname ? `${FILE_SERVER_URL}${urlWithHostname}?bucket=${FILE_SERVER_CONVERSATIONS_BUCKET}` : null;
+  composeFileUrl(urlWithHostname: string, bucket: ConversationBucketNameEnum): string | null {
+    return urlWithHostname ? `${FILE_SERVER_URL}${urlWithHostname}?bucket=${bucket}` : null;
   }
 
   async uploadFile(file: File): Promise<UploadFileOutputDto | null> {

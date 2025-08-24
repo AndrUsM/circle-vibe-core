@@ -66,7 +66,7 @@ export class AuthorizationInput {
     example: 'https://example.com/avatar.jpg',
     required: false,
   })
-  avatar: File;
+  avatarUrl: string;
 
   /**
    * Is user contact info hidden

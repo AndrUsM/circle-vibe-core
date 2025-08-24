@@ -11,7 +11,11 @@ import {
   UploadVideoOutputDto,
   PaginatedResponse,
   MessageFile,
+  ConversationBucketNameEnum,
 } from '@circle-vibe/shared';
+
+import { DatabaseService } from 'src/core';
+import { FileService } from 'src/core/services';
 import {
   MessageCreateInputDto,
   MessageFilesInputDto,
@@ -19,8 +23,6 @@ import {
   MessagesPaginatedInputDto,
   MessageUpdateInputDto,
 } from './dtos';
-import { DatabaseService } from 'src/core';
-import { FileService } from 'src/core/services';
 import { GetMessagesByChatPaginatedParams } from './params';
 
 @Injectable()
@@ -384,8 +386,8 @@ export class MessageService {
   #mapMessageFileToOutputDto(messageFile: MessageFile): MessageFile {
     return {
       ...messageFile,
-      url: this.fileService.composeFileUrl(messageFile.url),
-      optimizedUrl: this.fileService.composeFileUrl(messageFile.optimizedUrl),
+      url: this.fileService.composeFileUrl(messageFile.url, ConversationBucketNameEnum.CONVERSATIONS),
+      optimizedUrl: this.fileService.composeFileUrl(messageFile.optimizedUrl, ConversationBucketNameEnum.CONVERSATIONS),
     } as MessageFile;
   }
 }
