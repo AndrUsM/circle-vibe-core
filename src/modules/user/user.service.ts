@@ -40,6 +40,8 @@ export class UserService {
 
     const password = updateUserInputDto?.password?.length ? this.encryptPassword(updateUserInputDto.password) : null;
     const updatedPassword = password ? { password } : {};
+    const avatarUrl = updateUserInputDto?.avatarUrl?.length ? { avatarUrl: updateUserInputDto.avatarUrl } : null;
+    const optimizedAvatarUrl = updateUserInputDto?.avatarUrlOptimized?.length ? { avatarUrlOptimized: updateUserInputDto.avatarUrlOptimized } : null;
 
     const updatedUser = await this.databaseService.user.update({
       where: {
@@ -49,6 +51,8 @@ export class UserService {
         ...composeUserUpdateInput(user),
         ...updateUserInputDto,
         ...updatedPassword,
+        ...avatarUrl,
+        ...optimizedAvatarUrl,
         role: updateUserInputDto?.role as UserRole ?? user.role
       }
     });

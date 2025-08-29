@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MessageFileEntityType, MessageFileType, Prisma } from '@prisma/client';
+import { MessageFileEntityType, MessageFileType, Prisma, User } from '@prisma/client';
 
 import {
   Message,
@@ -115,9 +115,8 @@ export class MessageService {
       },
     })) as unknown as Message[];
 
-    const mappedMessages = (items ?? []).map((message) => {
-      return this.#mapMessagesToOutputDto(message, threadMessages);
-    });
+    const mappedMessages = (items ?? [])
+      .map((message) => this.#mapMessagesToOutputDto(message, threadMessages))
 
     return {
       data: mappedMessages,
@@ -370,6 +369,13 @@ export class MessageService {
 
     return {
       ...message,
+      sender: {
+        ...message.sender,
+        user: {
+          ...message.sender.user,
+          ...this.#mapUserAvatarToOutputDto(message.sender.user),
+        }
+      },
       threads,
       files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
     } as unknown as Message;
@@ -379,8 +385,27 @@ export class MessageService {
     return {
       ...message,
       threads: [],
+      sender: {
+        ...message.sender,
+        user: {
+          ...message.sender.user,
+          ...this.#mapUserAvatarToOutputDto(message.sender.user),
+        }
+      },
       files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
     } as unknown as Message;
+  }
+
+  #mapUserAvatarToOutputDto(user: User): Partial<User> {
+    return {
+      ...user,
+      avatarUrl: user.avatarUrl
+        ? this.fileService.composeFileUrl(user.avatarUrl, ConversationBucketNameEnum.USER_AVATARS)
+        : null,
+      avatarUrlOptimized: user.avatarUrlOptimized
+        ? this.fileService.composeFileUrl(user.avatarUrlOptimized, ConversationBucketNameEnum.USER_AVATARS)
+        : null,
+    } as User;
   }
 
   #mapMessageFileToOutputDto(messageFile: MessageFile): MessageFile {
