@@ -1,1 +1,1 @@
-export const FILE_SERVER_URL = 'http://localhost:3004/api/';
+export const FILE_SERVER_URL = process.env.FILE_SERVER_URL;
