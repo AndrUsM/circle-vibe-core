@@ -104,6 +104,7 @@ model User {
   createdAt           DateTime?      @default(now())
   updatedAt           DateTime?      @default(now())
   chatStatus          UserChatStatus @default(OFFLINE)
+  blockedUserIds      Int[]          @default([])
 
   chatParticipants ChatParticipant[]
 }

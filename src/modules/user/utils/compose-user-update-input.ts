@@ -14,5 +14,6 @@ export const composeUserUpdateInput = (user: User): Prisma.UserUpdateInput => {
     country: user.country as CountryCode,
     email: user.email,
     primaryPhone: user.primaryPhone,
+    blockedUserIds: user.blockedUserIds,
   };
 };

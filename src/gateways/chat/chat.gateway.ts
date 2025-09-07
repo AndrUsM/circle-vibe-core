@@ -85,6 +85,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { chatId } = data;
     const roomName = String(chatId);
+    const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
+
+    if (!currentUserId) {
+      return;
+    }
 
     const messages = await this.messageService.getMessagesByChatPaginated(
       chatId,
@@ -92,7 +97,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         pageSize: this.#dataLimit,
         page: 1,
       },
-      { threadId: data.threadId },
+      { threadId: data.threadId, currentUserId },
     );
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
@@ -106,6 +111,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const chatId = data.chatId;
     const roomName = String(chatId);
+    const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
+
+    if (!currentUserId) {
+      return;
+    }
 
     await this.messageService.createFileVideoMessage(data);
 
@@ -117,6 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
       {
         threadId: data.threadId,
+        currentUserId,
       },
     );
 
@@ -158,6 +169,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const chatId = data.chatId;
     const roomName = String(chatId);
     const message = data;
+    const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
+
+    if (!currentUserId) {
+      return;
+    }
 
     await this.messageService.create({
       ...message,
@@ -165,7 +181,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       files: [],
     });
 
-    const messages = await this.chatGatewayService.getMessageByChat(chatId);
+    const messages = await this.chatGatewayService.getMessageByChat(chatId, {
+      currentUserId
+    });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
 
@@ -180,10 +198,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { chatId } = params;
     const roomName = String(chatId);
+    const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
+
+    if (!currentUserId) {
+      return;
+    }
 
     await this.messageService.createFileMessage(params);
 
-    const messages = await this.chatGatewayService.getMessageByChat(chatId);
+    const messages = await this.chatGatewayService.getMessageByChat(chatId, {
+      currentUserId
+    });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
 
@@ -241,6 +266,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() params: RequestMessagesWithPaginationChatSocketParams,
   ) {
     const { chatId, page, content, pageSize, senderIds, threadId } = params;
+    const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
+
+    if (!currentUserId) {
+      return;
+    }
 
     const messages = await this.messageService.getMessagesByChatPaginated(
       chatId,
@@ -252,7 +282,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         threadId,
         content,
         senderIds,
-      },
+        currentUserId
+      }
     );
 
     client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);

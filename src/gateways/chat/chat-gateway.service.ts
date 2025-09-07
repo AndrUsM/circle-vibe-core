@@ -116,6 +116,8 @@ export class ChatGatewayService {
       await this.messageService.getMessagesByChatPaginated(chatId, {
         pageSize: this.#dataLimit,
         page: 1,
+      }, {
+        currentUserId: userId
       });
 
     return {

@@ -6,6 +6,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
 } from '@nestjs/common';
@@ -21,6 +22,16 @@ export class UserController {
     private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
+
+  @Get('list-related-with-user/:id')
+  @HttpCode(200)
+  async getUsersToBlock(@Param('id', ParseIntPipe) userId: number) {
+    if (!userId) {
+      throw new BadRequestException();
+    }
+
+    return this.userService.getUsersToBlock(userId);
+  }
 
   @Post('upload-avatar/:id')
   @HttpCode(201)

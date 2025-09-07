@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { MessageFileEntityType, MessageFileType, Prisma, User } from '@prisma/client';
+import {
+  MessageFileEntityType,
+  MessageFileType,
+  Prisma,
+  User,
+} from '@prisma/client';
 
 import {
   Message,
@@ -41,12 +46,14 @@ export class MessageService {
     const threadId = filters?.threadId;
     const skip = (page - 1) * pageSize;
     const take = pageSize;
+    const blockedChatParticipants = await this.#getBlockedChartParticipants(filters?.currentUserId as number, chatId);
     const filterByContent = filters?.content?.length
       ? { content: { contains: filters.content } }
       : {};
+
     const filterBySenderIds = filters?.senderIds?.length
       ? { senderId: { in: filters.senderIds } }
-      : {};
+      : { senderId: { notIn: blockedChatParticipants } };
 
     const query: Prisma.MessageFindManyArgs = {
       orderBy: { createdAt: 'desc' },
@@ -115,8 +122,9 @@ export class MessageService {
       },
     })) as unknown as Message[];
 
-    const mappedMessages = (items ?? [])
-      .map((message) => this.#mapMessagesToOutputDto(message, threadMessages))
+    const mappedMessages = (items ?? []).map((message) =>
+      this.#mapMessagesToOutputDto(message, threadMessages),
+    );
 
     return {
       data: mappedMessages,
@@ -333,6 +341,31 @@ export class MessageService {
     }
   }
 
+  async #getBlockedChartParticipants(currentUserId: number, chatId: number): Promise<number[]> {
+    const blockedUsers = await this.databaseService.user.findUnique({
+      where: {
+        id: currentUserId
+      },
+      select: {
+        blockedUserIds: true,
+      }
+    });
+
+    const blockedParticipants = await this.databaseService.chatParticipant.findMany({
+      where: {
+        chatId,
+        userId: {
+          in: blockedUsers?.blockedUserIds,
+        }
+      },
+      select: {
+        id: true
+      }
+    });
+
+    return blockedParticipants.map(({ id }) => id);
+  }
+
   #mapUploadedFileToMessageFile(
     outputDto:
       | UploadFileOutputDto
@@ -374,7 +407,7 @@ export class MessageService {
         user: {
           ...message.sender.user,
           ...this.#mapUserAvatarToOutputDto(message.sender.user),
-        }
+        },
       },
       threads,
       files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
@@ -390,7 +423,7 @@ export class MessageService {
         user: {
           ...message.sender.user,
           ...this.#mapUserAvatarToOutputDto(message.sender.user),
-        }
+        },
       },
       files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
     } as unknown as Message;
@@ -400,10 +433,16 @@ export class MessageService {
     return {
       ...user,
       avatarUrl: user.avatarUrl
-        ? this.fileService.composeFileUrl(user.avatarUrl, ConversationBucketNameEnum.USER_AVATARS)
+        ? this.fileService.composeFileUrl(
+            user.avatarUrl,
+            ConversationBucketNameEnum.USER_AVATARS,
+          )
         : null,
       avatarUrlOptimized: user.avatarUrlOptimized
-        ? this.fileService.composeFileUrl(user.avatarUrlOptimized, ConversationBucketNameEnum.USER_AVATARS)
+        ? this.fileService.composeFileUrl(
+            user.avatarUrlOptimized,
+            ConversationBucketNameEnum.USER_AVATARS,
+          )
         : null,
     } as User;
   }
@@ -411,8 +450,14 @@ export class MessageService {
   #mapMessageFileToOutputDto(messageFile: MessageFile): MessageFile {
     return {
       ...messageFile,
-      url: this.fileService.composeFileUrl(messageFile.url, ConversationBucketNameEnum.CONVERSATIONS),
-      optimizedUrl: this.fileService.composeFileUrl(messageFile.optimizedUrl, ConversationBucketNameEnum.CONVERSATIONS),
+      url: this.fileService.composeFileUrl(
+        messageFile.url,
+        ConversationBucketNameEnum.CONVERSATIONS,
+      ),
+      optimizedUrl: this.fileService.composeFileUrl(
+        messageFile.optimizedUrl,
+        ConversationBucketNameEnum.CONVERSATIONS,
+      ),
     } as MessageFile;
   }
 }

@@ -10,7 +10,7 @@ import { User, UserChatStatus } from '@circle-vibe/shared';
 import { composeUserFromAuthorizationInput, composeUserUpdateInput } from './utils';
 import { FileService } from 'src/core/services';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { Prisma, UserRole } from '@prisma/client';
+import { ChatParticipant, Prisma, UserRole } from '@prisma/client';
 
 
 @Injectable()
@@ -205,6 +205,31 @@ export class UserService {
     });
 
     return jwt.sign(payload, secret);
+  }
+
+  async getUsersToBlock(userId: number): Promise<ChatParticipant[]> {
+    const chatIdsRequest = await this.databaseService.chatParticipant.findMany({
+      distinct: ['chatId'],
+      select: {
+        chatId: true
+      },
+      where: {
+        userId
+      }
+    });
+    const chatIds = chatIdsRequest.map(({ chatId }) => chatId);
+
+    return this.databaseService.chatParticipant.findMany({
+      distinct: ['userId'],
+      where: {
+        chatId: {
+          in: chatIds
+        },
+      },
+      include: {
+        user: true,
+      }
+    })
   }
 
   #generateNewUserPayload = (user: CreateUserDtoInput): Omit<User, 'id'> => {

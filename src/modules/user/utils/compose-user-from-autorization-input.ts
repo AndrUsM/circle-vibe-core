@@ -30,5 +30,6 @@ export const composeUserFromAuthorizationInput = (
     primaryPhone: input.primaryPhone ?? null,
     type: input.type,
     role: input.role,
+    blockedUserIds: [],
   };
 };

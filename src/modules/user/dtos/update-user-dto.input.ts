@@ -3,6 +3,7 @@ import { CountryCode, UserType } from "@circle-vibe/shared";
 export interface UpdateUserDtoInput {
   avatarUrl?: string;
   avatarUrlOptimized?: string;
+  blockedUserIds?: number[];
   username?: string;
   firstname?: string;
   surname?: string;
