@@ -23,6 +23,7 @@ enum MessageFileType {
   IMAGE
   DOCUMENT
   MS_DOCUMENT
+  MP3_AUDIO
 }
 
 enum UserType {
@@ -60,6 +61,7 @@ enum MessageType {
   IMAGE
   VIDEO
   FILE
+  AUDIO
 }
 
 enum UserChatStatus {

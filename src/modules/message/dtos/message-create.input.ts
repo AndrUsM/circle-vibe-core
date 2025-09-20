@@ -1,4 +1,4 @@
-import { MessageFile, MessageType } from "@circle-vibe/shared";
+import { MessageType } from "@prisma/client";
 import { MessageFilesInputDto } from "./message-files.input";
 
 export interface MessageCreateInputDto {
