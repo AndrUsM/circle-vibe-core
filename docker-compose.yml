@@ -1,15 +1,6 @@
 version: '3.8'
 
 services:
-  circle-vibe-backend:
-    container_name: circle-vibe-backend
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
-    networks:
-      - circle-vibe-network
   main-dabatase:
     image: postgres:15
     container_name: nest_postgres
@@ -22,12 +13,6 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-      - circle-vibe-network
 
 volumes:
   pgdata:
-
-networks:
-  circle-vibe-network:
-    external: true
