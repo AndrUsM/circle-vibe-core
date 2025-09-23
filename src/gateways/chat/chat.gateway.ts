@@ -295,10 +295,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: RequestChatsWithPaginationChatSocketParams,
   ) {
-    const { userId, page, pageSize } = params;
+    const { name, userId, page, pageSize, removed, empty, type } = params;
 
     const chats = await this.chatService.getAllPaginated({
-      name: params?.name,
+      name,
+      removed,
+      type,
+      empty,
       userId,
       page,
       pageSize,

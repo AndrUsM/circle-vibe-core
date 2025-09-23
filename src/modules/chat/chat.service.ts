@@ -276,6 +276,7 @@ export class ChatService {
         ...filterByName,
         hidden: params?.hidden ?? true,
         removed: params?.removed ?? false,
+        empty: params?.empty,
         type: params?.type ?? ChatType.PRIVATE,
       },
       skip,
