@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtPayload, sign } from 'jsonwebtoken';
 import * as jwt from 'jsonwebtoken';
 
-import { isTokenExpired, UserType } from '@circle-vibe/shared';
+import { isTokenExpired, User, UserType } from '@circle-vibe/shared';
 
-import { User } from 'src/entities/user.entity';
 import { HashedTokenParams, ParsedJWT } from './types';
 
 @Injectable()

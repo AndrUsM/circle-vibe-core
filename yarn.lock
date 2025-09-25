@@ -331,10 +331,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@circle-vibe/shared@^1.2.31":
-  version "1.2.31"
-  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.31.tgz#c9954f66a79b10f669a2c55aee6ac288d583ecc8"
-  integrity sha512-FAuMui0Fhb73cGwaffwMjcC0MXgOXQANhl12ARIq6o/ncNVaQQkSzgkKmLS4L16jqzjvic4QKRLfIMWJzQb2sg==
+"@circle-vibe/shared@^1.2.33":
+  version "1.2.33"
+  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.33.tgz#b5ba21dc7c5ef9815e9c387b2214354ef6fdc130"
+  integrity sha512-rad4w10RlyAWhtkRxv9r71mrzJKwWCQwTlciVdzSrllew6KtIXIlVRfaRuo+U3AIUHqcRZeJZdaT0Phk0wyB5A==
 
 "@colors/colors@1.5.0":
   version "1.5.0"

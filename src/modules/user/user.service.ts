@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ChatParticipant } from '@prisma/client';
 
 import * as randomstring from 'randomstring';
 import * as bcrypt from 'bcrypt';
@@ -10,7 +11,6 @@ import { User, UserChatStatus } from '@circle-vibe/shared';
 import { composeUserFromAuthorizationInput, composeUserUpdateInput } from './utils';
 import { FileService } from 'src/core/services';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
-import { ChatParticipant, Prisma, UserRole } from '@prisma/client';
 
 
 @Injectable()
@@ -53,7 +53,6 @@ export class UserService {
         ...updatedPassword,
         ...avatarUrl,
         ...optimizedAvatarUrl,
-        role: updateUserInputDto?.role as UserRole ?? user.role
       }
     });
 

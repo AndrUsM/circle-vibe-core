@@ -3,12 +3,6 @@ import { ChatType } from '@circle-vibe/shared';
 
 export class ChatCreateInputDto {
   @ApiProperty({
-    example: false,
-    required: true,
-  })
-  hidden: boolean;
-
-  @ApiProperty({
     example: 'name',
     required: true,
   })

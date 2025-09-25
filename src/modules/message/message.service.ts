@@ -136,6 +136,15 @@ export class MessageService {
   }
 
   async create(params: MessageCreateInputDto): Promise<Message | null> {
+    await this.databaseService.chat.update({
+      where: {
+        id: params.chatId,
+      },
+      data: {
+        empty: false,
+      },
+    });
+
     return this.databaseService.message.create({
       data: {
         content: params.content,

@@ -1,4 +1,4 @@
-import { UserRole, UserType } from "@circle-vibe/shared";
+import { UserType } from "@circle-vibe/shared";
 
 export interface CreateUserDtoInput {
   username: string;
@@ -15,5 +15,4 @@ export interface CreateUserDtoInput {
   email: string;
   primaryPhone?: string;
   type: UserType;
-  role: UserRole;
 }

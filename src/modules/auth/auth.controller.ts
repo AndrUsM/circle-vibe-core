@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
 
-import { UserType, UserRole, ChatType } from '@circle-vibe/shared';
+import { UserType, ChatType } from '@circle-vibe/shared';
 
 import { UserService } from '../user/user.service';
 import {
@@ -44,7 +44,6 @@ export class AuthController {
     const chat = await this.chatService.create(
       {
         name: 'saved-messages',
-        hidden: true,
         description: 'description',
         type: ChatType.PRIVATE,
         usersLimit: 1,
@@ -205,7 +204,6 @@ export class AuthController {
     const createdUser = await this.userService.createUser({
       ...params,
       type: params.type as UserType,
-      role: params.role as UserRole,
       password: encryptedPassword,
     });
 

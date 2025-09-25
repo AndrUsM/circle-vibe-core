@@ -21,19 +21,14 @@ enum MessageFileType {
   WEBM
   AVI
   IMAGE
+  AUDIO
   DOCUMENT
   MS_DOCUMENT
-  MP3_AUDIO
 }
 
 enum UserType {
   PRIVATE
   PUBLIC
-}
-
-enum UserRole {
-  USER
-  ADMIN
 }
 
 enum UserChatRole {
@@ -102,7 +97,6 @@ model User {
   privateToken        String         @unique
   primaryPhone        String?        @unique
   type                UserType       @default(PRIVATE)
-  role                UserRole       @default(USER)
   createdAt           DateTime?      @default(now())
   updatedAt           DateTime?      @default(now())
   chatStatus          UserChatStatus @default(OFFLINE)
@@ -114,14 +108,15 @@ model User {
 model Message {
   id          Int           @id @default(autoincrement())
   content     String
-  files       MessageFile[]
   status      MessageStatus @default(UNREAD)
-  Chat        Chat[]
   createdAt   DateTime?     @default(now())
   updatedAt   DateTime?     @default(now())
   messageType MessageType   @default(TEXT)
   removed     Boolean       @default(false)
   hidden      Boolean       @default(false)
+
+  files       MessageFile[]
+  chat        Chat[]
 
   childThreadId Int?
   chatId        Int
@@ -146,12 +141,11 @@ model Thread {
 model Chat {
   id                  Int       @id @default(autoincrement())
   avatarUrl           String?
-  hidden              Boolean   @default(false)
   isActive            Boolean   @default(true)
   name                String
   readableName        String    @unique
   description         String?
-  type                ChatType  @default(PUBLIC)
+  type                ChatType  @default(PRIVATE)
   isGroupChat         Boolean   @default(false)
   isSavedMessages     Boolean?  @default(false)
   createdAt           DateTime? @default(now())
