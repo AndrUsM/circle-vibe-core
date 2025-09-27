@@ -115,8 +115,8 @@ model Message {
   removed     Boolean       @default(false)
   hidden      Boolean       @default(false)
 
-  files       MessageFile[]
-  chat        Chat[]
+  files MessageFile[]
+  chat  Chat[]
 
   childThreadId Int?
   chatId        Int
@@ -142,6 +142,7 @@ model Chat {
   id                  Int       @id @default(autoincrement())
   avatarUrl           String?
   isActive            Boolean   @default(true)
+  bucket              String    @default("conversations")
   name                String
   readableName        String    @unique
   description         String?

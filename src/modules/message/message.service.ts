@@ -46,7 +46,10 @@ export class MessageService {
     const threadId = filters?.threadId;
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-    const blockedChatParticipants = await this.#getBlockedChartParticipants(filters?.currentUserId as number, chatId);
+    const blockedChatParticipants = await this.#getBlockedChartParticipants(
+      filters?.currentUserId as number,
+      chatId,
+    );
     const filterByContent = filters?.content?.length
       ? { content: { contains: filters.content } }
       : {};
@@ -122,8 +125,32 @@ export class MessageService {
       },
     })) as unknown as Message[];
 
+    const bucketInformation = await this.databaseService.chat.findUnique({
+      where: {
+        id: chatId,
+      },
+      select: {
+        id: true,
+        bucket: true,
+      },
+    });
+
+    if (!bucketInformation?.bucket) {
+      return {
+        data: [],
+        totalItems,
+        page,
+        pageSize,
+        totalPages: 0,
+      };
+    }
+
     const mappedMessages = (items ?? []).map((message) =>
-      this.#mapMessagesToOutputDto(message, threadMessages),
+      this.#mapMessagesToOutputDto(
+        message,
+        threadMessages,
+        bucketInformation.bucket,
+      ),
     );
 
     return {
@@ -350,27 +377,31 @@ export class MessageService {
     }
   }
 
-  async #getBlockedChartParticipants(currentUserId: number, chatId: number): Promise<number[]> {
+  async #getBlockedChartParticipants(
+    currentUserId: number,
+    chatId: number,
+  ): Promise<number[]> {
     const blockedUsers = await this.databaseService.user.findUnique({
       where: {
-        id: currentUserId
+        id: currentUserId,
       },
       select: {
         blockedUserIds: true,
-      }
+      },
     });
 
-    const blockedParticipants = await this.databaseService.chatParticipant.findMany({
-      where: {
-        chatId,
-        userId: {
-          in: blockedUsers?.blockedUserIds,
-        }
-      },
-      select: {
-        id: true
-      }
-    });
+    const blockedParticipants =
+      await this.databaseService.chatParticipant.findMany({
+        where: {
+          chatId,
+          userId: {
+            in: blockedUsers?.blockedUserIds,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
     return blockedParticipants.map(({ id }) => id);
   }
@@ -402,11 +433,12 @@ export class MessageService {
   #mapMessagesToOutputDto(
     message: Message,
     threadMessages: Message[],
+    bucket: string,
   ): Message {
     const threads = message?.childThreadId
       ? threadMessages
           .filter((thread) => thread.threadId === message?.childThreadId)
-          .map((thread) => this.#mapMessageToOutputDto(thread))
+          .map((thread) => this.#mapMessageToOutputDto(thread, bucket))
       : [];
 
     return {
@@ -419,11 +451,13 @@ export class MessageService {
         },
       },
       threads,
-      files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
+      files: message.files.map((file) =>
+        this.#mapMessageFileToOutputDto(file, bucket),
+      ),
     } as unknown as Message;
   }
 
-  #mapMessageToOutputDto(message: Message) {
+  #mapMessageToOutputDto(message: Message, bucket: string) {
     return {
       ...message,
       threads: [],
@@ -434,7 +468,9 @@ export class MessageService {
           ...this.#mapUserAvatarToOutputDto(message.sender.user),
         },
       },
-      files: message.files.map((file) => this.#mapMessageFileToOutputDto(file)),
+      files: message.files.map((file) =>
+        this.#mapMessageFileToOutputDto(file, bucket),
+      ),
     } as unknown as Message;
   }
 
@@ -456,16 +492,16 @@ export class MessageService {
     } as User;
   }
 
-  #mapMessageFileToOutputDto(messageFile: MessageFile): MessageFile {
+  #mapMessageFileToOutputDto(
+    messageFile: MessageFile,
+    bucket: string,
+  ): MessageFile {
     return {
       ...messageFile,
-      url: this.fileService.composeFileUrl(
-        messageFile.url,
-        ConversationBucketNameEnum.CONVERSATIONS,
-      ),
+      url: this.fileService.composeFileUrl(messageFile.url, bucket),
       optimizedUrl: this.fileService.composeFileUrl(
         messageFile.optimizedUrl,
-        ConversationBucketNameEnum.CONVERSATIONS,
+        bucket,
       ),
     } as MessageFile;
   }

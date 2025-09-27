@@ -3,7 +3,7 @@ import { ChatType } from "@circle-vibe/shared";
 export interface ChatListParams {
   page: number;
   pageSize: number;
-  userId?: number;
+  userId?: number[];
   readableName?: string;
   type?: ChatType;
   isGroupChat?: boolean;

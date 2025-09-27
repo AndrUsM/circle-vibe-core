@@ -138,7 +138,7 @@ export class ChatGatewayService {
     });
 
     const chats = await this.chatService.getAllPaginated({
-      userId,
+      userId: [userId],
       pageSize: this.#dataLimit,
       page: 1,
     });
