@@ -5,6 +5,7 @@ import { UserService } from '../user';
 import { EmailService, EmailServiceHttpModule, FileService } from 'src/core/services';
 import { ChatService } from '../chat';
 import { ParticipantService } from '../participant/participant.service';
+import { AuthStartUpService } from './services';
 
 @Module({
   imports: [EmailServiceHttpModule],
@@ -15,6 +16,7 @@ import { ParticipantService } from '../participant/participant.service';
     FileService,
     EmailService,
     ChatService,
+    AuthStartUpService,
     ParticipantService,
   ],
   exports: [AuthService],

@@ -6,12 +6,13 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { UserType, ChatType } from '@circle-vibe/shared';
 
@@ -24,41 +25,31 @@ import {
 } from './dtos';
 import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
-import { ChatService } from '../chat';
-import { ParticipantService } from '../participant/participant.service';
 import { JwtAuthGuard } from 'src/guards';
 import { HashedTokenParams } from './types';
+import { AuthStartUpService } from './services';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-    private chatService: ChatService,
-    private participantService: ParticipantService,
+    private authStartUpService: AuthStartUpService,
   ) {}
 
-  @Post(`:userId/start-up`)
+  @ApiOperation({ summary: 'Starts the auth setup process for a user' })
+  @ApiParam({ name: 'userId', type: Number })
+  @ApiResponse({ status: 200, description: 'Setup complete' })
+  @Post(':userId/start-up')
   @HttpCode(200)
-  async startUp(@Param('userId') userId: number) {
-    const chat = await this.chatService.create(
-      {
-        name: 'saved-messages',
-        description: 'description',
-        type: ChatType.PRIVATE,
-        usersLimit: 1,
-      },
-      {
-        isSavedMessages: true,
-      },
-    );
+  async startUp(@Param('userId', ParseIntPipe) userId: number) {
+    const isUserExists = await this.userService.getById(userId);
 
-    if (chat) {
-      await this.participantService.createParticipantWithDefaultOptions({
-        userId,
-        chatId: chat.id,
-      });
+    if (!userId || !isUserExists) {
+      throw new BadRequestException();
     }
+
+    return this.authStartUpService.createDefaultPrivateSettings(userId);
   }
 
   @Get('current')
