@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ChatParticipant, UserChatRole } from '@prisma/client';
 import { DatabaseService } from 'src/core';
-import { GetChatParticipantInput } from './params';
-import { CreateChatParticipantInput, UpdateChatParticipantInput } from './dtos';
+import {
+  ChatsParticipantsWithUserParam,
+  GetChatParticipantInput,
+} from './params';
+import {
+  ChatsParticipantsWithUser,
+  CreateChatParticipantInput,
+  UpdateChatParticipantInput,
+} from './dtos';
 
 @Injectable()
 export class ParticipantService {
@@ -17,6 +24,34 @@ export class ParticipantService {
         user: true,
       },
     });
+  }
+
+  async getChatsParticipantsByAuthorizedUser({
+    userId,
+  }: ChatsParticipantsWithUserParam): Promise<ChatsParticipantsWithUser[]> {
+    const chatIds = await this.databaseService.chatParticipant.findMany({
+      distinct: 'chatId',
+      where: {
+        userId,
+      },
+      select: {
+        chatId: true,
+      },
+    });
+    const mappedIds = chatIds.map(({ chatId }) => chatId);
+
+    return this.databaseService.chatParticipant.findMany({
+      distinct: 'userId',
+      select: {
+        id: true,
+        user: true,
+      },
+      where: {
+        chatId: {
+          in: mappedIds
+        }
+      }
+    }) as Promise<ChatsParticipantsWithUser[]>
   }
 
   async getChatParticipants(
@@ -34,12 +69,17 @@ export class ParticipantService {
     });
   }
 
-  async updateChatParticipant(chatId: number, participantId: number, params: UpdateChatParticipantInput){
-    const chatParticipant = await this.databaseService.chatParticipant.findUnique({
-      where: {
-        id: participantId,
-      },
-    })
+  async updateChatParticipant(
+    chatId: number,
+    participantId: number,
+    params: UpdateChatParticipantInput,
+  ) {
+    const chatParticipant =
+      await this.databaseService.chatParticipant.findUnique({
+        where: {
+          id: participantId,
+        },
+      });
 
     return this.databaseService.chatParticipant.update({
       where: {
@@ -52,7 +92,7 @@ export class ParticipantService {
         ...chatParticipant,
         ...params,
       },
-    })
+    });
   }
 
   async getOrCreateChatParticipant(

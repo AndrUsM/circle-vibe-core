@@ -14,6 +14,7 @@ import {
   UseGuards,
   Req,
   UnauthorizedException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -57,6 +58,7 @@ export class ChatController {
     description: 'Request body',
   })
   @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
   async updateChat(
     @Param('id') chatId: number,
     @Body() params: ChatUpdateInputDto,
@@ -70,7 +72,21 @@ export class ChatController {
     return this.chatService.update(chatId, params);
   }
 
+  @Get('participants')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async getChatsParticipants(@Query('userId', ParseIntPipe) userId: number) {
+    if (!userId) {
+      throw new BadRequestException();
+    }
+
+    return this.participantService.getChatsParticipantsByAuthorizedUser({
+      userId
+    })
+  }
+
   @Get(':id/participants')
+  @UseGuards(JwtAuthGuard)
   getChatParticipants(@Param('id') chatId: number) {
     if (!chatId) {
       return [];
