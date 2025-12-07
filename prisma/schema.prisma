@@ -1,3 +1,9 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider   = "prisma-client-js"
   engineType = "binary"
@@ -5,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum MessageFileEntityType {
@@ -76,7 +81,9 @@ model MessageFile {
   entityType   MessageFileEntityType @default(FILE)
 
   messageId Int
-  Message   Message[]
+  message   Message @relation(fields: [messageId], references: [id])
+
+  @@index([messageId])
 }
 
 model User {
@@ -85,7 +92,7 @@ model User {
   surname             String
   username            String?        @unique
   birthDate           DateTime?
-  password            String         @unique
+  password            String         
   avatarUrl           String?
   avatarUrlOptimized  String?
   isHiddenContactInfo Boolean        @default(true)
@@ -103,6 +110,12 @@ model User {
   blockedUserIds      Int[]          @default([])
 
   chatParticipants ChatParticipant[]
+  confirmations    UserConfirmation[]
+
+  @@index([email])
+  @@index([username])
+  @@index([chatStatus])
+  @@index([type])
 }
 
 model Message {
@@ -116,26 +129,35 @@ model Message {
   hidden      Boolean       @default(false)
 
   files MessageFile[]
-  chat  Chat[]
+
+  chatId Int
+  chat   Chat @relation(fields: [chatId], references: [id])
+
+  senderId Int
+  sender   ChatParticipant @relation("SenderMessages", fields: [senderId], references: [id])
+
+  threadId Int?
+  thread   Thread? @relation(fields: [threadId], references: [id])
 
   childThreadId Int?
-  chatId        Int
-  senderId      Int
-  threadId      Int?
 
-  sender ChatParticipant @relation(fields: [senderId], references: [id])
-  thread Thread?         @relation(fields: [threadId], references: [id])
+  @@index([chatId, createdAt])
+  @@index([senderId])
+  chats Chat[] @relation(name: "chat-message")
 }
 
 model Thread {
   id           Int               @id @default(autoincrement())
   messages     Message[]
-  participants ChatParticipant[]
+  participants ChatParticipant[] @relation("ThreadParticipants")
 
   chatId          Int
   parentMessageId Int
 
   chat Chat @relation(fields: [chatId], references: [id])
+
+  @@index([parentMessageId])
+  @@index([chatId])
 }
 
 model Chat {
@@ -159,9 +181,14 @@ model Chat {
   encryptionSecret    String?   @default("Se9XNjAcmbrNoCooRPJq")
 
   lastMessageId Int?
-  lastMessage   Message? @relation(fields: [lastMessageId], references: [id])
+  lastMessage   Message? @relation(name: "chat-message", fields: [lastMessageId], references: [id])
 
-  Thread Thread[]
+  Thread       Thread[]
+  messages     Message[]
+  participants ChatParticipant[]
+
+  @@index([updatedAt])
+  @@index([lastMessageId])
 }
 
 model ChatParticipant {
@@ -172,9 +199,16 @@ model ChatParticipant {
   userId Int
   chatId Int
 
-  messages Message[]
-  threads  Thread[]
-  user     User      @relation(fields: [userId], references: [id])
+  messages Message[] @relation("SenderMessages")
+  threads  Thread[]  @relation("ThreadParticipants")
+
+  user User @relation(fields: [userId], references: [id])
+  chat Chat @relation(fields: [chatId], references: [id])
+
+  @@unique([userId, chatId])
+  @@index([chatId])
+  @@index([userId])
+  @@index([chatRole])
 }
 
 model ChatInvite {
@@ -185,12 +219,18 @@ model ChatInvite {
   role                  UserChatRole
   token                 String       @unique
   chatId                Int
+
+  @@index([token])
+  @@index([chatId])
+  @@index([targetUserId])
 }
 
 model ChatParticipantGatewayState {
   id       Int    @id @default(autoincrement())
   clientId String @unique
   userId   Int
+
+  @@index([userId])
 }
 
 model UserConfirmation {
@@ -200,4 +240,9 @@ model UserConfirmation {
   code      String
   createdAt DateTime @default(now())
   confirmed Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([email])
 }

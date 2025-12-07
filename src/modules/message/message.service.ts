@@ -324,13 +324,13 @@ export class MessageService {
     messageId: number,
     file: Omit<MessageFile, 'id' | 'messageId'>,
   ) {
-    const data: Prisma.MessageFileCreateInput = {
+    const data = {
       ...file,
       messageId,
     };
 
     this.databaseService.messageFile.create({
-      data,
+      data
     });
   }
 

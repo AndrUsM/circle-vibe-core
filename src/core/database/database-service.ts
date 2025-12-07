@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Prisma, PrismaClient,  } from '@prisma/client';
+import { PrismaClient } from '@prisma/client/index';
+import { PrismaPostgresAdapter } from '@prisma/adapter-ppg'
 
 import {ENCRIPTION_FIELDS_EXTENSION} from './constants';
 
@@ -11,7 +12,11 @@ export class DatabaseService
   constructor() {
     super({
       errorFormat: 'minimal',
+      adapter: new PrismaPostgresAdapter({
+        connectionString: String(process.env.DATABASE_URL),
+      }),
     });
+
     this.$extends(ENCRIPTION_FIELDS_EXTENSION)
   }
 

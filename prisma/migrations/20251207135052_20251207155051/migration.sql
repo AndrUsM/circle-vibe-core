@@ -73,10 +73,10 @@ CREATE TABLE "Message" (
     "messageType" "MessageType" NOT NULL DEFAULT 'TEXT',
     "removed" BOOLEAN NOT NULL DEFAULT false,
     "hidden" BOOLEAN NOT NULL DEFAULT false,
-    "childThreadId" INTEGER,
     "chatId" INTEGER NOT NULL,
     "senderId" INTEGER NOT NULL,
     "threadId" INTEGER,
+    "childThreadId" INTEGER,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
 );
@@ -161,26 +161,18 @@ CREATE TABLE "UserConfirmation" (
 );
 
 -- CreateTable
-CREATE TABLE "_MessageToMessageFile" (
+CREATE TABLE "_ThreadParticipants" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
 
-    CONSTRAINT "_MessageToMessageFile_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "_ThreadParticipants_AB_pkey" PRIMARY KEY ("A","B")
 );
 
--- CreateTable
-CREATE TABLE "_ChatParticipantToThread" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
-
-    CONSTRAINT "_ChatParticipantToThread_AB_pkey" PRIMARY KEY ("A","B")
-);
+-- CreateIndex
+CREATE INDEX "MessageFile_messageId_idx" ON "MessageFile"("messageId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_password_key" ON "User"("password");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -195,19 +187,82 @@ CREATE UNIQUE INDEX "User_privateToken_key" ON "User"("privateToken");
 CREATE UNIQUE INDEX "User_primaryPhone_key" ON "User"("primaryPhone");
 
 -- CreateIndex
+CREATE INDEX "User_email_idx" ON "User"("email");
+
+-- CreateIndex
+CREATE INDEX "User_username_idx" ON "User"("username");
+
+-- CreateIndex
+CREATE INDEX "User_chatStatus_idx" ON "User"("chatStatus");
+
+-- CreateIndex
+CREATE INDEX "User_type_idx" ON "User"("type");
+
+-- CreateIndex
+CREATE INDEX "Message_chatId_createdAt_idx" ON "Message"("chatId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
+
+-- CreateIndex
+CREATE INDEX "Thread_parentMessageId_idx" ON "Thread"("parentMessageId");
+
+-- CreateIndex
+CREATE INDEX "Thread_chatId_idx" ON "Thread"("chatId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Chat_readableName_key" ON "Chat"("readableName");
+
+-- CreateIndex
+CREATE INDEX "Chat_updatedAt_idx" ON "Chat"("updatedAt");
+
+-- CreateIndex
+CREATE INDEX "Chat_lastMessageId_idx" ON "Chat"("lastMessageId");
+
+-- CreateIndex
+CREATE INDEX "ChatParticipant_chatId_idx" ON "ChatParticipant"("chatId");
+
+-- CreateIndex
+CREATE INDEX "ChatParticipant_userId_idx" ON "ChatParticipant"("userId");
+
+-- CreateIndex
+CREATE INDEX "ChatParticipant_chatRole_idx" ON "ChatParticipant"("chatRole");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChatParticipant_userId_chatId_key" ON "ChatParticipant"("userId", "chatId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ChatInvite_token_key" ON "ChatInvite"("token");
 
 -- CreateIndex
+CREATE INDEX "ChatInvite_token_idx" ON "ChatInvite"("token");
+
+-- CreateIndex
+CREATE INDEX "ChatInvite_chatId_idx" ON "ChatInvite"("chatId");
+
+-- CreateIndex
+CREATE INDEX "ChatInvite_targetUserId_idx" ON "ChatInvite"("targetUserId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ChatParticipantGatewayState_clientId_key" ON "ChatParticipantGatewayState"("clientId");
 
 -- CreateIndex
-CREATE INDEX "_MessageToMessageFile_B_index" ON "_MessageToMessageFile"("B");
+CREATE INDEX "ChatParticipantGatewayState_userId_idx" ON "ChatParticipantGatewayState"("userId");
 
 -- CreateIndex
-CREATE INDEX "_ChatParticipantToThread_B_index" ON "_ChatParticipantToThread"("B");
+CREATE INDEX "UserConfirmation_userId_idx" ON "UserConfirmation"("userId");
+
+-- CreateIndex
+CREATE INDEX "UserConfirmation_email_idx" ON "UserConfirmation"("email");
+
+-- CreateIndex
+CREATE INDEX "_ThreadParticipants_B_index" ON "_ThreadParticipants"("B");
+
+-- AddForeignKey
+ALTER TABLE "MessageFile" ADD CONSTRAINT "MessageFile_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "Message"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "ChatParticipant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -225,13 +280,13 @@ ALTER TABLE "Chat" ADD CONSTRAINT "Chat_lastMessageId_fkey" FOREIGN KEY ("lastMe
 ALTER TABLE "ChatParticipant" ADD CONSTRAINT "ChatParticipant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_MessageToMessageFile" ADD CONSTRAINT "_MessageToMessageFile_A_fkey" FOREIGN KEY ("A") REFERENCES "Message"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ChatParticipant" ADD CONSTRAINT "ChatParticipant_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_MessageToMessageFile" ADD CONSTRAINT "_MessageToMessageFile_B_fkey" FOREIGN KEY ("B") REFERENCES "MessageFile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "UserConfirmation" ADD CONSTRAINT "UserConfirmation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ChatParticipantToThread" ADD CONSTRAINT "_ChatParticipantToThread_A_fkey" FOREIGN KEY ("A") REFERENCES "ChatParticipant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_ThreadParticipants" ADD CONSTRAINT "_ThreadParticipants_A_fkey" FOREIGN KEY ("A") REFERENCES "ChatParticipant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ChatParticipantToThread" ADD CONSTRAINT "_ChatParticipantToThread_B_fkey" FOREIGN KEY ("B") REFERENCES "Thread"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_ThreadParticipants" ADD CONSTRAINT "_ThreadParticipants_B_fkey" FOREIGN KEY ("B") REFERENCES "Thread"("id") ON DELETE CASCADE ON UPDATE CASCADE;

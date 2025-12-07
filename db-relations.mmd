@@ -1,0 +1,128 @@
+erDiagram
+
+    User {
+        Int id PK
+        String firstname
+        String surname
+        String username
+        DateTime birthDate
+        String password
+        String avatarUrl
+        String avatarUrlOptimized
+        Boolean isHiddenContactInfo
+        Boolean isAllowedToSearch
+        String country
+        String city
+        String email
+        String privateKey
+        String privateToken
+        String primaryPhone
+        UserType type
+        DateTime createdAt
+        DateTime updatedAt
+        UserChatStatus chatStatus
+        Int[] blockedUserIds
+    }
+
+    Chat {
+        Int id PK
+        String avatarUrl
+        Boolean isActive
+        String bucket
+        String name
+        String readableName
+        String description
+        ChatType type
+        Boolean isGroupChat
+        Boolean isSavedMessages
+        DateTime createdAt
+        DateTime updatedAt
+        Boolean hasUnreadMessages
+        Boolean empty
+        Int unreadMessagesCount
+        Int usersLimit
+        Boolean removed
+        String encryptionSecret
+        Int lastMessageId FK
+    }
+
+    ChatParticipant {
+        Int id PK
+        UserChatRole chatRole
+        Boolean isMuted
+        Int userId FK
+        Int chatId FK
+    }
+
+    Message {
+        Int id PK
+        String content
+        MessageStatus status
+        DateTime createdAt
+        DateTime updatedAt
+        MessageType messageType
+        Boolean removed
+        Boolean hidden
+        Int senderId FK
+        Int chatId FK
+        Int threadId FK
+        Int childThreadId
+    }
+
+    MessageFile {
+        Int id PK
+        String fileName
+        String url
+        String optimizedUrl
+        MessageFileType type
+        String description
+        MessageFileEntityType entityType
+        Int messageId FK
+    }
+
+    Thread {
+        Int id PK
+        Int chatId FK
+        Int parentMessageId
+    }
+
+    ChatInvite {
+        Int id PK
+        Int fromChatParticipantId FK
+        Int targetUserId FK
+        DateTime expirationDate
+        UserChatRole role
+        String token
+        Int chatId FK
+    }
+
+    ChatParticipantGatewayState {
+        Int id PK
+        String clientId
+        Int userId FK
+    }
+
+    UserConfirmation {
+        Int id PK
+        Int userId FK
+        String email
+        String code
+        DateTime createdAt
+        Boolean confirmed
+    }
+
+    %% RELATIONSHIPS
+
+    User ||--o{ ChatParticipant : "has participants"
+    Chat ||--o{ ChatParticipant : "has participants"
+    Chat ||--o{ Thread : "contains threads"
+    Thread ||--o{ Message : "has messages"
+    Chat ||--o{ Message : "has messages"
+    Message ||--o{ MessageFile : "has files"
+    Message }o--|| ChatParticipant : "sent by"
+    Thread }o--|| Chat : "belongs to"
+    Chat }o--|| Message : "last message"
+    User ||--o{ UserConfirmation : "has confirmations"
+    User ||--o{ ChatParticipantGatewayState : "gateway states"
+    ChatInvite }o--|| ChatParticipant : "from participant"
+    ChatInvite }o--|| User : "target user"

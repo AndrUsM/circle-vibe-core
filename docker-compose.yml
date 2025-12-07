@@ -3,7 +3,7 @@ version: '3.8'
 services:
   main-dabatase:
     image: postgres:15
-    container_name: nest_postgres
+    container_name: circle-vibe-core-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: nestuser
