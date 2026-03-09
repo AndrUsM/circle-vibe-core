@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider   = "prisma-client-js"
   engineType = "binary"
@@ -11,6 +5,167 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model MessageFile {
+  id           Int                   @id @default(autoincrement())
+  fileName     String
+  url          String
+  optimizedUrl String
+  type         MessageFileType
+  description  String?
+  entityType   MessageFileEntityType @default(FILE)
+  messageId    Int
+  message      Message               @relation(fields: [messageId], references: [id])
+
+  @@index([messageId])
+}
+
+model User {
+  id                  Int                @id @default(autoincrement())
+  firstname           String
+  surname             String
+  username            String?            @unique
+  birthDate           DateTime?
+  password            String
+  avatarUrl           String?
+  avatarUrlOptimized  String?
+  isHiddenContactInfo Boolean            @default(true)
+  isAllowedToSearch   Boolean?           @default(true)
+  country             String?
+  city                String?
+  email               String             @unique
+  privateKey          String             @unique
+  privateToken        String             @unique
+  primaryPhone        String?            @unique
+  type                UserType           @default(PRIVATE)
+  createdAt           DateTime?          @default(now())
+  updatedAt           DateTime?          @default(now())
+  chatStatus          UserChatStatus     @default(OFFLINE)
+  blockedUserIds      Int[]              @default([])
+  chatParticipants    ChatParticipant[]
+  confirmations       UserConfirmation[]
+
+  @@index([email])
+  @@index([username])
+  @@index([chatStatus])
+  @@index([type])
+}
+
+model Message {
+  id            Int             @id @default(autoincrement())
+  content       String
+  status        MessageStatus   @default(UNREAD)
+  createdAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @default(now())
+  messageType   MessageType     @default(TEXT)
+  removed       Boolean         @default(false)
+  hidden        Boolean         @default(false)
+  chatId        Int
+  senderId      Int
+  threadId      Int?
+  childThreadId Int?
+  chats         Chat[]          @relation("chat-message")
+  chat          Chat            @relation(fields: [chatId], references: [id])
+  sender        ChatParticipant @relation("SenderMessages", fields: [senderId], references: [id])
+  thread        Thread?         @relation(fields: [threadId], references: [id])
+  files         MessageFile[]
+
+  @@index([chatId, createdAt])
+  @@index([senderId])
+}
+
+model Thread {
+  id              Int               @id @default(autoincrement())
+  chatId          Int
+  parentMessageId Int
+  messages        Message[]
+  chat            Chat              @relation(fields: [chatId], references: [id])
+  participants    ChatParticipant[] @relation("ThreadParticipants")
+
+  @@index([parentMessageId])
+  @@index([chatId])
+}
+
+model Chat {
+  id                  Int               @id @default(autoincrement())
+  avatarUrl           String?
+  isActive            Boolean           @default(true)
+  bucket              String            @default("conversations")
+  name                String
+  readableName        String            @unique
+  description         String?
+  type                ChatType          @default(PRIVATE)
+  isGroupChat         Boolean           @default(false)
+  isSavedMessages     Boolean?          @default(false)
+  createdAt           DateTime?         @default(now())
+  updatedAt           DateTime?         @default(now())
+  hasUnreadMessages   Boolean?          @default(false)
+  empty               Boolean?          @default(true)
+  unreadMessagesCount Int               @default(0)
+  usersLimit          Int
+  removed             Boolean           @default(false)
+  encryptionSecret    String?           @default("Se9XNjAcmbrNoCooRPJq")
+  lastMessageId       Int?
+  lastMessage         Message?          @relation("chat-message", fields: [lastMessageId], references: [id])
+  participants        ChatParticipant[]
+  messages            Message[]
+  Thread              Thread[]
+
+  @@index([updatedAt])
+  @@index([lastMessageId])
+}
+
+model ChatParticipant {
+  id       Int          @id @default(autoincrement())
+  chatRole UserChatRole @default(ADMIN)
+  isMuted  Boolean?     @default(false)
+  userId   Int
+  chatId   Int
+  chat     Chat         @relation(fields: [chatId], references: [id])
+  user     User         @relation(fields: [userId], references: [id])
+  messages Message[]    @relation("SenderMessages")
+  threads  Thread[]     @relation("ThreadParticipants")
+
+  @@unique([userId, chatId])
+  @@index([chatId])
+  @@index([userId])
+  @@index([chatRole])
+}
+
+model ChatInvite {
+  id                    Int          @id @default(autoincrement())
+  fromChatParticipantId Int
+  targetUserId          Int
+  expirationDate        DateTime
+  role                  UserChatRole
+  token                 String       @unique
+  chatId                Int
+
+  @@index([token])
+  @@index([chatId])
+  @@index([targetUserId])
+}
+
+model ChatParticipantGatewayState {
+  id       Int    @id @default(autoincrement())
+  clientId String @unique
+  userId   Int
+
+  @@index([userId])
+}
+
+model UserConfirmation {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  email     String
+  code      String
+  createdAt DateTime @default(now())
+  confirmed Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([email])
 }
 
 enum MessageFileEntityType {
@@ -69,180 +224,4 @@ enum UserChatStatus {
   BUSY
   AT_WORK
   OFFLINE
-}
-
-model MessageFile {
-  id           Int                   @id @default(autoincrement())
-  fileName     String
-  url          String
-  optimizedUrl String
-  type         MessageFileType
-  description  String?
-  entityType   MessageFileEntityType @default(FILE)
-
-  messageId Int
-  message   Message @relation(fields: [messageId], references: [id])
-
-  @@index([messageId])
-}
-
-model User {
-  id                  Int            @id @default(autoincrement())
-  firstname           String
-  surname             String
-  username            String?        @unique
-  birthDate           DateTime?
-  password            String         
-  avatarUrl           String?
-  avatarUrlOptimized  String?
-  isHiddenContactInfo Boolean        @default(true)
-  isAllowedToSearch   Boolean?       @default(true)
-  country             String?
-  city                String?
-  email               String         @unique
-  privateKey          String         @unique
-  privateToken        String         @unique
-  primaryPhone        String?        @unique
-  type                UserType       @default(PRIVATE)
-  createdAt           DateTime?      @default(now())
-  updatedAt           DateTime?      @default(now())
-  chatStatus          UserChatStatus @default(OFFLINE)
-  blockedUserIds      Int[]          @default([])
-
-  chatParticipants ChatParticipant[]
-  confirmations    UserConfirmation[]
-
-  @@index([email])
-  @@index([username])
-  @@index([chatStatus])
-  @@index([type])
-}
-
-model Message {
-  id          Int           @id @default(autoincrement())
-  content     String
-  status      MessageStatus @default(UNREAD)
-  createdAt   DateTime?     @default(now())
-  updatedAt   DateTime?     @default(now())
-  messageType MessageType   @default(TEXT)
-  removed     Boolean       @default(false)
-  hidden      Boolean       @default(false)
-
-  files MessageFile[]
-
-  chatId Int
-  chat   Chat @relation(fields: [chatId], references: [id])
-
-  senderId Int
-  sender   ChatParticipant @relation("SenderMessages", fields: [senderId], references: [id])
-
-  threadId Int?
-  thread   Thread? @relation(fields: [threadId], references: [id])
-
-  childThreadId Int?
-
-  @@index([chatId, createdAt])
-  @@index([senderId])
-  chats Chat[] @relation(name: "chat-message")
-}
-
-model Thread {
-  id           Int               @id @default(autoincrement())
-  messages     Message[]
-  participants ChatParticipant[] @relation("ThreadParticipants")
-
-  chatId          Int
-  parentMessageId Int
-
-  chat Chat @relation(fields: [chatId], references: [id])
-
-  @@index([parentMessageId])
-  @@index([chatId])
-}
-
-model Chat {
-  id                  Int       @id @default(autoincrement())
-  avatarUrl           String?
-  isActive            Boolean   @default(true)
-  bucket              String    @default("conversations")
-  name                String
-  readableName        String    @unique
-  description         String?
-  type                ChatType  @default(PRIVATE)
-  isGroupChat         Boolean   @default(false)
-  isSavedMessages     Boolean?  @default(false)
-  createdAt           DateTime? @default(now())
-  updatedAt           DateTime? @default(now())
-  hasUnreadMessages   Boolean?  @default(false)
-  empty               Boolean?  @default(true)
-  unreadMessagesCount Int       @default(0)
-  usersLimit          Int
-  removed             Boolean   @default(false)
-  encryptionSecret    String?   @default("Se9XNjAcmbrNoCooRPJq")
-
-  lastMessageId Int?
-  lastMessage   Message? @relation(name: "chat-message", fields: [lastMessageId], references: [id])
-
-  Thread       Thread[]
-  messages     Message[]
-  participants ChatParticipant[]
-
-  @@index([updatedAt])
-  @@index([lastMessageId])
-}
-
-model ChatParticipant {
-  id       Int          @id @default(autoincrement())
-  chatRole UserChatRole @default(ADMIN)
-  isMuted  Boolean?     @default(false)
-
-  userId Int
-  chatId Int
-
-  messages Message[] @relation("SenderMessages")
-  threads  Thread[]  @relation("ThreadParticipants")
-
-  user User @relation(fields: [userId], references: [id])
-  chat Chat @relation(fields: [chatId], references: [id])
-
-  @@unique([userId, chatId])
-  @@index([chatId])
-  @@index([userId])
-  @@index([chatRole])
-}
-
-model ChatInvite {
-  id                    Int          @id @default(autoincrement())
-  fromChatParticipantId Int
-  targetUserId          Int
-  expirationDate        DateTime
-  role                  UserChatRole
-  token                 String       @unique
-  chatId                Int
-
-  @@index([token])
-  @@index([chatId])
-  @@index([targetUserId])
-}
-
-model ChatParticipantGatewayState {
-  id       Int    @id @default(autoincrement())
-  clientId String @unique
-  userId   Int
-
-  @@index([userId])
-}
-
-model UserConfirmation {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  email     String
-  code      String
-  createdAt DateTime @default(now())
-  confirmed Boolean  @default(false)
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([email])
 }

@@ -46,7 +46,7 @@ export class AuthController {
     const isUserExists = await this.userService.getById(userId);
 
     if (!userId || !isUserExists) {
-      throw new BadRequestException();
+      throw new BadRequestException('User does not exist');
     }
 
     return this.authStartUpService.createDefaultPrivateSettings(userId);
@@ -194,7 +194,7 @@ export class AuthController {
     const encryptedPassword = this.userService.encryptPassword(params.password);
     const createdUser = await this.userService.createUser({
       ...params,
-      type: params.type as UserType,
+      type: params.type,
       password: encryptedPassword,
     });
 

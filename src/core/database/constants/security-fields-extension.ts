@@ -8,7 +8,7 @@ import { SENSITIVE_FIELDS_MAP } from './sensitive-fields-map';
 
 type ModelDelegateExtension = any;
 
-export const ENCRIPTION_FIELDS_EXTENSION = Prisma.defineExtension({
+export const ENCRYPTION_FIELDS_EXTENSION = Prisma.defineExtension({
   name: 'encryptionExtension',
 
   model: Object.fromEntries(

@@ -83,7 +83,7 @@ export class ChatService {
     );
 
     if (!bucket?.id) {
-      throw new BadRequestException();
+      throw new BadRequestException('Bucket not found.');
     }
 
     const chat = await this.databaseService.chat.create({

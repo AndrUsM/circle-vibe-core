@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ChatType } from '@circle-vibe/shared';
 
 import { ChatService } from 'src/modules/chat';
 import { ParticipantService } from 'src/modules/participant';
+import { ChatParticipant } from '@prisma/client';
 
 @Injectable()
 export class AuthStartUpService {
@@ -11,7 +12,7 @@ export class AuthStartUpService {
     private participantService: ParticipantService,
   ) {}
 
-  async createDefaultPrivateSettings(userId: number): Promise<void> {
+  async createDefaultPrivateSettings(userId: number): Promise<ChatParticipant> {
     const chat = await this.chatService.create(
       {
         name: 'saved-messages',
@@ -24,11 +25,13 @@ export class AuthStartUpService {
       },
     );
 
-    if (chat) {
-      await this.participantService.createParticipantWithDefaultOptions({
-        userId,
-        chatId: chat.id,
-      });
+    if (!chat) {
+      return Promise.reject(new BadRequestException('Cannot create chat'));
     }
+
+    return this.participantService.createParticipantWithDefaultOptions({
+      userId,
+      chatId: chat.id,
+    });
   }
 }
