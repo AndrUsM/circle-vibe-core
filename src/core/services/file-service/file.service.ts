@@ -42,7 +42,7 @@ export class FileService {
       });
 
       return response.data;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -57,7 +57,7 @@ export class FileService {
         payload,
       );
 
-      return respose.data;
+      return respose.data as UploadFileOutputDto;
     } catch {
       return null;
     }

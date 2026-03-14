@@ -132,7 +132,7 @@ export class UserService {
       select: {
         id: true,
       }
-    })
+    });
 
     await this.databaseService.chatParticipant.deleteMany({
       where: {

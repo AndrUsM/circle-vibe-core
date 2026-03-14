@@ -1,1 +1,3 @@
+import 'dotenv/config';
+
 export const FILE_SERVER_URL = process.env.FILE_SERVER_URL;
