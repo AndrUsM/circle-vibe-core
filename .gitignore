@@ -57,3 +57,4 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+/.proxyai/checkpoints/c4bbc97e-adcd-4dbe-b804-fcecf68c5540/1ac85930-cce0-4728-b4cd-ace545a5e5cc
