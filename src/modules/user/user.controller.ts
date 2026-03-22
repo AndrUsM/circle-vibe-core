@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   NotFoundException,
@@ -15,6 +16,7 @@ import { UserService } from './user.service';
 
 import { AuthService } from '../auth';
 import { UpdateUserDtoInput } from './dtos';
+import { AccountStatus } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
@@ -70,7 +72,7 @@ export class UserController {
     return user;
   }
 
-  @Put('/:id')
+  @Put(':id')
   @HttpCode(200)
   async changeUserChatStatus(
     @Param('id') userId: number,
@@ -86,5 +88,37 @@ export class UserController {
     }
 
     return updatedUser;
+  }
+
+  @Post(':id/deactivate-account')
+  @HttpCode(200)
+  async deactivateAccount(@Param('id') userId: number) {
+    return this.userService.partiallyUpdateUser(Number(userId), {
+      accountStatus: AccountStatus.DEACTIVATED,
+      isHiddenContactInfo: true,
+      isAllowedToSearch: false,
+    });
+  }
+
+  @Post(':id/activate-account')
+  @HttpCode(200)
+  async activateAccount(@Param('id') userId: number) {
+    return this.userService.partiallyUpdateUser(Number(userId), {
+      accountStatus: AccountStatus.ACTIVE,
+      isHiddenContactInfo: false,
+      isAllowedToSearch: true,
+    });
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  async deleteAccount(@Param('id') userId: number) {
+    const deletedUser = await this.userService.deleteUser(userId);
+
+    if (!deletedUser) {
+      throw new BadRequestException();
+    }
+
+    return deletedUser;
   }
 }

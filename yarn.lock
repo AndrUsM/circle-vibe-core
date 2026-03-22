@@ -337,10 +337,10 @@
   resolved "https://registry.yarnpkg.com/@chevrotain/utils/-/utils-10.5.0.tgz#0ee36f65b49b447fbac71b9e5af5c5c6c98ac057"
   integrity sha512-hBzuU5+JjB2cqNZyszkDHZgOSrUUT8V3dhgRl8Q9Gp6dAj/H5+KILGjbhDpc3Iy9qmqlm/akuOI2ut9VUtzJxQ==
 
-"@circle-vibe/shared@^1.2.35":
-  version "1.2.35"
-  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.35.tgz#71023b30d6c97c14f20df281dcae53584a1b58c4"
-  integrity sha512-bxsddzKQbDGs5b0o+YiSOTqz1fREcJTj6NiEdj8a4F8a4a/Zx4OnmOkTkoz3jRq0ZBbKDCSZ+V5iXYaRgsWnrA==
+"@circle-vibe/shared@^1.2.37":
+  version "1.2.37"
+  resolved "https://registry.yarnpkg.com/@circle-vibe/shared/-/shared-1.2.37.tgz#456cb0ccee10ac157ebdac2b62dbd8ebf12bd6e3"
+  integrity sha512-w5r96PRsJyzFqR9g33piKQEs6k6Wo8j4LplNf9AGpub4/PyMCwqitVKnAm93/d/u/ggXyiIDNL4h3kl+MYU4Lg==
 
 "@colors/colors@1.5.0":
   version "1.5.0"

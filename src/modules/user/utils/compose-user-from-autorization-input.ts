@@ -1,5 +1,6 @@
 import { User } from '@prisma/client';
 import { CreateUserDtoInput } from '../dtos';
+import { AccountStatus } from '@circle-vibe/shared';
 
 type UserDto = Omit<
   User,
@@ -29,6 +30,7 @@ export const composeUserFromAuthorizationInput = (
     email: input.email,
     primaryPhone: input.primaryPhone ?? null,
     type: input.type,
+    accountStatus: AccountStatus.ACTIVE,
     blockedUserIds: [],
   };
 };

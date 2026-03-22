@@ -1,4 +1,5 @@
-import { CountryCode, UserType } from "@circle-vibe/shared";
+import { CountryCode, UserType } from '@circle-vibe/shared';
+import { AccountStatus } from '@prisma/client';
 
 export interface UpdateUserDtoInput {
   avatarUrl?: string;
@@ -11,6 +12,7 @@ export interface UpdateUserDtoInput {
   password?: string;
   isHiddenContactInfo?: boolean;
   isAllowedToSearch?: boolean;
+  accountStatus?: AccountStatus;
   city?: string;
   country?: CountryCode;
   email?: string;

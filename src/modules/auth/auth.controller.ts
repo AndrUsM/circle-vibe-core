@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
-import { UserType, ChatType } from '@circle-vibe/shared';
+import { AccountStatus } from '@circle-vibe/shared';
 
 import { UserService } from '../user/user.service';
 import {
@@ -61,8 +61,9 @@ export class AuthController {
     }
 
     const user = await this.userService.getById(Number(request?.userId));
+    const isAccountLocked = user?.accountStatus !== AccountStatus.ACTIVE;
 
-    if (!user) {
+    if (!user || isAccountLocked) {
       throw new NotFoundException();
     }
 

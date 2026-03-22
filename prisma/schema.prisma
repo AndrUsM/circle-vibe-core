@@ -32,6 +32,7 @@ model User {
   avatarUrlOptimized  String?
   isHiddenContactInfo Boolean            @default(true)
   isAllowedToSearch   Boolean?           @default(true)
+  accountStatus       AccountStatus?     @default(ACTIVE)
   country             String?
   city                String?
   email               String             @unique
@@ -166,6 +167,13 @@ model UserConfirmation {
 
   @@index([userId])
   @@index([email])
+}
+
+enum AccountStatus {
+  DEACTIVATED
+  LOCKED
+  ACTIVE
+  NOT_ACTIVE
 }
 
 enum MessageFileEntityType {

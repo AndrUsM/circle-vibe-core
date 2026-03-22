@@ -1,10 +1,12 @@
-import { CountryCode } from "@circle-vibe/shared";
+import { CountryCode } from '@circle-vibe/shared';
 
-import { Prisma, User } from "@prisma/client";
+import { Prisma, User } from '@prisma/client';
 
-export const composeUserUpdateInput = (user: User): Prisma.UserUpdateInput => {
+export const composeUserUpdateInput = (
+  user: Omit<User, 'accountStatus'>,
+): Prisma.UserUpdateInput => {
   return {
-    username: user.username ,
+    username: user.username,
     firstname: user.firstname,
     surname: user.surname,
     birthDate: user.birthDate,

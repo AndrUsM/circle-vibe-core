@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AccountStatus,
   MessageFileEntityType,
   MessageFileType,
   Prisma,
@@ -474,7 +475,7 @@ export class MessageService {
     } as unknown as Message;
   }
 
-  #mapUserAvatarToOutputDto(user: User): Partial<User> {
+  #mapUserAvatarToOutputDto(user: Omit<User, 'accountStatus'>): Partial<User> {
     return {
       ...user,
       avatarUrl: user.avatarUrl

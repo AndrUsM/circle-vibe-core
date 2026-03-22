@@ -6,16 +6,25 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
 import { DatabaseService } from 'src/core';
-import { CreateUserDtoInput, GenerateJwtTokenInput, UpdateUserDtoInput } from './dtos';
+import {
+  CreateUserDtoInput,
+  GenerateJwtTokenInput,
+  UpdateUserDtoInput,
+} from './dtos';
 import { User, UserChatStatus } from '@circle-vibe/shared';
-import { composeUserFromAuthorizationInput, composeUserUpdateInput } from './utils';
+import {
+  composeUserFromAuthorizationInput,
+  composeUserUpdateInput,
+} from './utils';
 import { FileService } from 'src/core/services';
 import { JWT_TOKEN_SECRET } from 'src/configuration';
 
-
 @Injectable()
 export class UserService {
-  constructor(private databaseService: DatabaseService, private fileService: FileService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private fileService: FileService,
+  ) {}
 
   async matchUserByPersonalToken(privateKey: string): Promise<User | null> {
     const user = await this.databaseService.user.findUnique({
@@ -27,25 +36,53 @@ export class UserService {
     return (user as User) ?? null;
   }
 
-  async updateUser(id: number, updateUserInputDto: UpdateUserDtoInput): Promise<User | null> {
-    const user = await this.databaseService.user.findUnique({
-      where: {
-        id
+  async partiallyUpdateUser(
+    id: number,
+    updateUserInputDto: Partial<UpdateUserDtoInput>,
+  ) {
+    const user = await this.databaseService.user.findFirst({
+      where: { id },
+    });
+
+    const updatedUser = await this.databaseService.user.update({
+      where: { id },
+      data: {
+        ...user,
+        ...updateUserInputDto,
       },
-    }) as User | null;
+    });
+
+    return updatedUser as User;
+  }
+
+  async updateUser(
+    id: number,
+    updateUserInputDto: UpdateUserDtoInput,
+  ): Promise<User | null> {
+    const user = (await this.databaseService.user.findUnique({
+      where: {
+        id,
+      },
+    })) as User | null;
 
     if (!user) {
       return null;
     }
 
-    const password = updateUserInputDto?.password?.length ? this.encryptPassword(updateUserInputDto.password) : null;
+    const password = updateUserInputDto?.password?.length
+      ? this.encryptPassword(updateUserInputDto.password)
+      : null;
     const updatedPassword = password ? { password } : {};
-    const avatarUrl = updateUserInputDto?.avatarUrl?.length ? { avatarUrl: updateUserInputDto.avatarUrl } : null;
-    const optimizedAvatarUrl = updateUserInputDto?.avatarUrlOptimized?.length ? { avatarUrlOptimized: updateUserInputDto.avatarUrlOptimized } : null;
+    const avatarUrl = updateUserInputDto?.avatarUrl?.length
+      ? { avatarUrl: updateUserInputDto.avatarUrl }
+      : null;
+    const optimizedAvatarUrl = updateUserInputDto?.avatarUrlOptimized?.length
+      ? { avatarUrlOptimized: updateUserInputDto.avatarUrlOptimized }
+      : null;
 
     const updatedUser = await this.databaseService.user.update({
       where: {
-        id
+        id,
       },
       data: {
         ...composeUserUpdateInput(user),
@@ -53,7 +90,7 @@ export class UserService {
         ...updatedPassword,
         ...avatarUrl,
         ...optimizedAvatarUrl,
-      }
+      },
     });
 
     return updatedUser as User;
@@ -107,7 +144,15 @@ export class UserService {
     return createdUser as User;
   }
 
-  async deleteUser(userId: number): Promise<void> {
+  async deleteUser(userId: number): Promise<User | null> {
+    const user = await this.databaseService.user.findFirst({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return null;
+    }
+
     await this.databaseService.user.delete({
       where: {
         id: userId,
@@ -120,18 +165,18 @@ export class UserService {
       },
       select: {
         id: true,
-      }
+      },
     });
     const participantIds = participants.map((participant) => participant.id);
     const messageIds = await this.databaseService.message.findMany({
       where: {
         senderId: {
-          in: participantIds
+          in: participantIds,
         },
       },
       select: {
         id: true,
-      }
+      },
     });
 
     await this.databaseService.chatParticipant.deleteMany({
@@ -145,12 +190,12 @@ export class UserService {
     await this.databaseService.message.updateMany({
       where: {
         senderId: {
-          in: participantIds
+          in: participantIds,
         },
       },
       data: {
         removed: true,
-      }
+      },
     });
 
     await this.databaseService.messageFile.deleteMany({
@@ -160,6 +205,8 @@ export class UserService {
         },
       },
     });
+
+    return user as User;
   }
 
   async matchUserByEmail(email: string): Promise<User | null> {
@@ -210,11 +257,11 @@ export class UserService {
     const chatIdsRequest = await this.databaseService.chatParticipant.findMany({
       distinct: ['chatId'],
       select: {
-        chatId: true
+        chatId: true,
       },
       where: {
-        userId
-      }
+        userId,
+      },
     });
     const chatIds = chatIdsRequest.map(({ chatId }) => chatId);
 
@@ -222,13 +269,13 @@ export class UserService {
       distinct: ['userId'],
       where: {
         chatId: {
-          in: chatIds
+          in: chatIds,
         },
       },
       include: {
         user: true,
-      }
-    })
+      },
+    });
   }
 
   #generateNewUserPayload = (user: CreateUserDtoInput): Omit<User, 'id'> => {
@@ -272,7 +319,7 @@ export class UserService {
       data: {
         avatarUrl: file?.filePath,
         avatarUrlOptimized: file?.optimisedFilePath,
-      }
+      },
     });
   }
 
