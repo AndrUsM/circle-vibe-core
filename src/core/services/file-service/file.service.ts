@@ -21,7 +21,7 @@ export class FileService {
 
   composeFileUrl(urlWithHostname: string, bucket: string): string | null {
     return urlWithHostname
-      ? `${FILE_SERVER_URL}${urlWithHostname}?bucket=${bucket}`
+      ? `${FILE_SERVER_URL}/${urlWithHostname}?bucket=${bucket}`
       : null;
   }
 

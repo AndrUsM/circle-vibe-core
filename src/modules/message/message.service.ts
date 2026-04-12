@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  AccountStatus,
   MessageFileEntityType,
   MessageFileType,
   Prisma,
@@ -293,7 +292,7 @@ export class MessageService {
       type: fileMeta.type,
       url: fileUrl,
       optimizedUrl: fileUrl,
-      messageId,
+      // messageId,
     };
 
     await this.databaseService.message.update({

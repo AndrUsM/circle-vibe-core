@@ -90,14 +90,9 @@ export class ChatGatewayService {
     }
 
     const user = await this.userService.getById(userId);
+    const token = user ? this.authService.generateJWT(user) : null;
 
-    if (!user) {
-      return undefined;
-    }
-
-    const token = this.authService.generateJWT(user);
-
-    if (!token) {
+    if (user && token) {
       return undefined;
     }
 
@@ -113,12 +108,16 @@ export class ChatGatewayService {
     });
 
     const messagesForChat =
-      await this.messageService.getMessagesByChatPaginated(chatId, {
-        pageSize: this.#dataLimit,
-        page: 1,
-      }, {
-        currentUserId: userId
-      });
+      await this.messageService.getMessagesByChatPaginated(
+        chatId,
+        {
+          pageSize: this.#dataLimit,
+          page: 1,
+        },
+        {
+          currentUserId: userId,
+        },
+      );
 
     return {
       messagesForChat,
@@ -156,10 +155,17 @@ export class ChatGatewayService {
     return state?.userId ?? fallbackUserId ?? null;
   }
 
-  async getMessageByChat(chatId: number, filters?: GetMessagesByChatPaginatedParams) {
-    return this.messageService.getMessagesByChatPaginated(chatId, {
-      pageSize: this.#dataLimit,
-      page: 1,
-    }, filters);
+  async getMessageByChat(
+    chatId: number,
+    filters?: GetMessagesByChatPaginatedParams,
+  ) {
+    return this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+      filters,
+    );
   }
 }
