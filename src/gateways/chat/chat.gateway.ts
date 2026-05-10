@@ -29,6 +29,7 @@ import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
 import {
   ChatService,
+  MessageRepository,
   MessageService,
   ParticipantGatewayStateService,
   ThreadService,
@@ -52,7 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private chatGatewayService: ChatGatewayService,
 
-    private readonly threadService: ThreadService,
+    private readonly messageRepository: MessageRepository,
     private readonly messageService: MessageService,
     private readonly chatService: ChatService,
     private readonly userService: UserService,
@@ -117,7 +118,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    await this.messageService.createFileVideoMessage(data);
+    await this.messageRepository.createFileVideoMessage(data);
 
     const messages = await this.messageService.getMessagesByChatPaginated(
       chatId,

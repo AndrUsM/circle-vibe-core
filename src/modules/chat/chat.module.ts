@@ -5,10 +5,19 @@ import { ParticipantService } from '../participant/participant.service';
 import { UserService } from '../user';
 import { ChatInviteService } from '../chat-invites';
 import { FileService } from 'src/core/services';
-import { MessageService } from '../message';
+import { MessageService, MessageRepository, MessageMappers } from '../message';
 
 @Module({
   controllers: [ChatController],
-  providers: [ChatService, ParticipantService, UserService, ChatInviteService, FileService, MessageService],
+  providers: [
+    ChatService,
+    ParticipantService,
+    UserService,
+    ChatInviteService,
+    FileService,
+    MessageService,
+    MessageRepository,
+    MessageMappers
+  ],
 })
 export class ChatModule {}

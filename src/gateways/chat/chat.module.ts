@@ -3,6 +3,8 @@ import { ChatGateway } from './chat.gateway';
 import {
   AuthService,
   ChatService,
+  MessageMappers,
+  MessageRepository,
   MessageService,
   ThreadService,
   UserService,
@@ -16,6 +18,8 @@ import { ChatGatewayService } from './chat-gateway.service';
     ChatGateway,
     ChatService,
     MessageService,
+    MessageRepository,
+    MessageMappers,
     AuthService,
     UserService,
     FileService,
