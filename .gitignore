@@ -1,60 +1,42 @@
-# compiled output
-/dist
-/node_modules
-/build
-/src/database/generated
+# Maven
+target/
+.m2/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+*.iws
+*.ipr
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+/bin/
+/build/
 
 # Logs
-logs
 *.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+logs/
 
-# OS
-.DS_Store
+# Database
+*.db
+*.sqlite
 
-# Tests
-/coverage
-/.nyc_output
-
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# temp directory
-.temp
-.tmp
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-/generated/prisma
-/.proxyai/checkpoints/c4bbc97e-adcd-4dbe-b804-fcecf68c5540/1ac85930-cce0-4728-b4cd-ace545a5e5cc
+# Gradle
+.gradle/
+gradle/
+gradle-app.jar

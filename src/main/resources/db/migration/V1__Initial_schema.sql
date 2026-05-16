@@ -1,158 +1,166 @@
--- Initial database schema for Circle Vibe Core
-
+-- Users Table
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     firstname VARCHAR(255) NOT NULL,
     surname VARCHAR(255) NOT NULL,
     username VARCHAR(255) UNIQUE,
     birth_date TIMESTAMP,
     password VARCHAR(255) NOT NULL,
-    avatar_url VARCHAR(500),
-    avatar_url_optimized VARCHAR(500),
-    is_hidden_contact_info BOOLEAN DEFAULT true NOT NULL,
+    avatar_url VARCHAR(255),
+    avatar_url_optimized VARCHAR(255),
+    is_hidden_contact_info BOOLEAN DEFAULT true,
     is_allowed_to_search BOOLEAN DEFAULT true,
     account_status VARCHAR(20) DEFAULT 'ACTIVE',
-    country VARCHAR(100),
-    city VARCHAR(100),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    private_key VARCHAR(255) UNIQUE NOT NULL,
-    private_token VARCHAR(255) UNIQUE NOT NULL,
-    primary_phone VARCHAR(20) UNIQUE,
-    type VARCHAR(10) DEFAULT 'PRIVATE',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    chat_status VARCHAR(10) DEFAULT 'OFFLINE'
+    country VARCHAR(255),
+    city VARCHAR(255),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    private_key VARCHAR(255) NOT NULL UNIQUE,
+    private_token VARCHAR(255) NOT NULL UNIQUE,
+    primary_phone VARCHAR(255) UNIQUE,
+    type VARCHAR(20) DEFAULT 'PRIVATE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    chat_status VARCHAR(20) DEFAULT 'OFFLINE'
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_chat_status ON users(chat_status);
-CREATE INDEX idx_users_type ON users(type);
+CREATE INDEX idx_email ON users(email);
+CREATE INDEX idx_username ON users(username);
+CREATE INDEX idx_chat_status ON users(chat_status);
+CREATE INDEX idx_type ON users(type);
 
-CREATE TABLE user_blocked_ids (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    blocked_user_id BIGINT NOT NULL
+-- User Blocked Users Table
+CREATE TABLE user_blocked_users (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    blocked_user_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, blocked_user_id)
 );
 
+-- Chats Table
 CREATE TABLE chats (
-    id BIGSERIAL PRIMARY KEY,
-    avatar_url VARCHAR(500),
-    is_active BOOLEAN DEFAULT true NOT NULL,
-    bucket VARCHAR(50) DEFAULT 'conversations',
+    id SERIAL PRIMARY KEY,
+    avatar_url VARCHAR(255),
+    is_active BOOLEAN DEFAULT true,
+    bucket VARCHAR(255) DEFAULT 'conversations',
     name VARCHAR(255) NOT NULL,
-    readable_name VARCHAR(255) UNIQUE NOT NULL,
+    readable_name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
-    type VARCHAR(10) DEFAULT 'PRIVATE',
-    is_group_chat BOOLEAN DEFAULT false NOT NULL,
+    type VARCHAR(20) DEFAULT 'PRIVATE',
+    is_group_chat BOOLEAN DEFAULT false,
     is_saved_messages BOOLEAN DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     has_unread_messages BOOLEAN DEFAULT false,
     empty BOOLEAN DEFAULT true,
     unread_messages_count INTEGER DEFAULT 0,
     users_limit INTEGER NOT NULL,
-    removed BOOLEAN DEFAULT false NOT NULL,
+    removed BOOLEAN DEFAULT false,
     encryption_secret VARCHAR(255) DEFAULT 'Se9XNjAcmbrNoCooRPJq',
-    last_message_id BIGINT
+    last_message_id INTEGER
 );
 
-CREATE INDEX idx_chats_updated_at ON chats(updated_at);
-CREATE INDEX idx_chats_last_message_id ON chats(last_message_id);
+CREATE INDEX idx_updated_at ON chats(updated_at);
+CREATE INDEX idx_last_message_id ON chats(last_message_id);
 
-CREATE TABLE messages (
-    id BIGSERIAL PRIMARY KEY,
-    content TEXT NOT NULL,
-    status VARCHAR(10) DEFAULT 'UNREAD',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    message_type VARCHAR(10) DEFAULT 'TEXT',
-    removed BOOLEAN DEFAULT false NOT NULL,
-    hidden BOOLEAN DEFAULT false NOT NULL,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-    sender_id BIGINT NOT NULL,
-    thread_id BIGINT,
-    child_thread_id BIGINT
-);
-
-CREATE INDEX idx_messages_chat_created ON messages(chat_id, created_at);
-CREATE INDEX idx_messages_sender ON messages(sender_id);
-
-CREATE TABLE threads (
-    id BIGSERIAL PRIMARY KEY,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-    parent_message_id BIGINT NOT NULL
-);
-
-CREATE INDEX idx_threads_parent_msg ON threads(parent_message_id);
-CREATE INDEX idx_threads_chat ON threads(chat_id);
-
+-- Chat Participants Table
 CREATE TABLE chat_participants (
-    id BIGSERIAL PRIMARY KEY,
-    chat_role VARCHAR(20) DEFAULT 'ADMIN',
+    id SERIAL PRIMARY KEY,
+    chat_role VARCHAR(50) DEFAULT 'ADMIN',
     is_muted BOOLEAN DEFAULT false,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     UNIQUE(user_id, chat_id)
 );
 
-CREATE INDEX idx_chat_part_chat ON chat_participants(chat_id);
-CREATE INDEX idx_chat_part_user ON chat_participants(user_id);
-CREATE INDEX idx_chat_part_role ON chat_participants(chat_role);
+CREATE INDEX idx_chat_id ON chat_participants(chat_id);
+CREATE INDEX idx_user_id ON chat_participants(user_id);
+CREATE INDEX idx_chat_role ON chat_participants(chat_role);
 
--- Add foreign key for messages.sender_id
-ALTER TABLE messages ADD CONSTRAINT fk_messages_sender FOREIGN KEY (sender_id) REFERENCES chat_participants(id) ON DELETE CASCADE;
-ALTER TABLE messages ADD CONSTRAINT fk_messages_thread FOREIGN KEY (thread_id) REFERENCES threads(id) ON DELETE CASCADE;
-ALTER TABLE chats ADD CONSTRAINT fk_chats_last_message FOREIGN KEY (last_message_id) REFERENCES messages(id) ON DELETE SET NULL;
-
-CREATE TABLE message_files (
-    id BIGSERIAL PRIMARY KEY,
-    file_name VARCHAR(255) NOT NULL,
-    url VARCHAR(500) NOT NULL,
-    optimized_url VARCHAR(500) NOT NULL,
-    type VARCHAR(20) NOT NULL,
-    description TEXT,
-    entity_type VARCHAR(20) DEFAULT 'FILE',
-    message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE
+-- Threads Table
+CREATE TABLE threads (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    parent_message_id INTEGER NOT NULL
 );
 
-CREATE INDEX idx_msg_file_msg ON message_files(message_id);
+CREATE INDEX idx_parent_message_id ON threads(parent_message_id);
+CREATE INDEX idx_thread_chat_id ON threads(chat_id);
 
+-- Thread Participants Table
+CREATE TABLE thread_participants (
+    participant_id INTEGER NOT NULL REFERENCES chat_participants(id) ON DELETE CASCADE,
+    thread_id INTEGER NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+    PRIMARY KEY (participant_id, thread_id)
+);
+
+-- Messages Table
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'UNREAD',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    message_type VARCHAR(50) DEFAULT 'TEXT',
+    removed BOOLEAN DEFAULT false,
+    hidden BOOLEAN DEFAULT false,
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    sender_id INTEGER NOT NULL REFERENCES chat_participants(id) ON DELETE CASCADE,
+    thread_id INTEGER REFERENCES threads(id) ON DELETE CASCADE,
+    child_thread_id INTEGER
+);
+
+CREATE INDEX idx_chat_created ON messages(chat_id, created_at);
+CREATE INDEX idx_sender_id ON messages(sender_id);
+
+-- Update Chat Last Message Foreign Key
+ALTER TABLE chats ADD CONSTRAINT fk_last_message FOREIGN KEY (last_message_id) REFERENCES messages(id) ON DELETE SET NULL;
+
+-- Message Files Table
+CREATE TABLE message_files (
+    id SERIAL PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    optimized_url VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    description TEXT,
+    entity_type VARCHAR(50) DEFAULT 'FILE',
+    message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_message_id ON message_files(message_id);
+
+-- Chat Invites Table
 CREATE TABLE chat_invites (
-    id BIGSERIAL PRIMARY KEY,
-    from_chat_participant_id BIGINT NOT NULL,
-    target_user_id BIGINT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    from_chat_participant_id INTEGER NOT NULL,
+    target_user_id INTEGER NOT NULL,
     expiration_date TIMESTAMP NOT NULL,
-    role VARCHAR(20) NOT NULL,
-    token VARCHAR(255) UNIQUE NOT NULL,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE
+    role VARCHAR(50) NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    chat_id INTEGER NOT NULL
 );
 
 CREATE INDEX idx_invite_token ON chat_invites(token);
-CREATE INDEX idx_invite_chat ON chat_invites(chat_id);
-CREATE INDEX idx_invite_target_user ON chat_invites(target_user_id);
+CREATE INDEX idx_invite_chat_id ON chat_invites(chat_id);
+CREATE INDEX idx_invite_target_user_id ON chat_invites(target_user_id);
 
+-- User Confirmations Table
 CREATE TABLE user_confirmations (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL,
     code VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    confirmed BOOLEAN DEFAULT false NOT NULL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    confirmed BOOLEAN DEFAULT false
 );
 
-CREATE INDEX idx_confirm_user ON user_confirmations(user_id);
-CREATE INDEX idx_confirm_email ON user_confirmations(email);
+CREATE INDEX idx_confirmation_user_id ON user_confirmations(user_id);
+CREATE INDEX idx_confirmation_email ON user_confirmations(email);
 
+-- Chat Participant Gateway States Table
 CREATE TABLE chat_participant_gateway_states (
-    id BIGSERIAL PRIMARY KEY,
-    client_id VARCHAR(255) UNIQUE NOT NULL,
-    user_id BIGINT NOT NULL
+    id SERIAL PRIMARY KEY,
+    client_id VARCHAR(255) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL
 );
 
-CREATE INDEX idx_gateway_user ON chat_participant_gateway_states(user_id);
-
-CREATE TABLE thread_participants (
-    thread_id BIGINT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
-    chat_participant_id BIGINT NOT NULL REFERENCES chat_participants(id) ON DELETE CASCADE,
-    PRIMARY KEY (thread_id, chat_participant_id)
-);
+CREATE INDEX idx_gateway_user_id ON chat_participant_gateway_states(user_id);

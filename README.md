@@ -1,119 +1,318 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Circle Vibe Core - Java Spring Boot Edition
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A complete rewrite of the Circle Vibe secure messaging platform from **NestJS + Prisma** to **Java 21 Spring Boot 3.2.0 with JPA/Hibernate**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📋 Project Overview
 
-## Description
+Circle Vibe Core is an enterprise-grade secure messaging API supporting:
+- Private & group chats
+- Real-time messaging
+- Message threading
+- File attachments
+- User role management
+- JWT authentication
+- PostgreSQL persistence
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Quick Start
 
-## Project setup
+### Prerequisites
+- Java 21+
+- Maven 3.8+
+- PostgreSQL 12+
+
+### Installation
 
 ```bash
+# Clone repository
+git clone https://github.com/AndrUsM/circle-vibe-core.git
+cd circle-vibe-core
+git checkout java-spring-jpa-rewrite
 
-# init database
-$ docker compose up -d
+# Set environment variables
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=circle_vibe
+export DB_USER=postgres
+export DB_PASSWORD=password
+export JWT_SECRET="your-32-character-secret-key-change-this-please!!!"
 
-#install dependencies
-$ yarn install
+# Build
+mvn clean install
 
-# generate prisma types
-$ yarn prisma:generate
-
-add to .env file info
-
+# Run
+mvn spring-boot:run
 ```
 
-## ENV file fields
-DATABASE_URL="postgresql://nestuser:nestpassword@localhost:5432/circle-vibe-core-db"
-JWT_TOKEN_SECRET=e1203ef4-ba82-44e4-9178-8d6390aff262
+API available at: `http://localhost:8080/api`
+Swagger UI: `http://localhost:8080/api/swagger-ui.html`
 
-## Compile and run the project
+## 📦 Technology Stack
+
+| Feature | Technology |
+|---------|------------|
+| Runtime | Java 21 |
+| Framework | Spring Boot 3.2.0 |
+| ORM | Spring Data JPA / Hibernate |
+| Database | PostgreSQL |
+| Authentication | JWT (JJWT) |
+| Security | Spring Security |
+| API Docs | Springdoc OpenAPI 3.0 |
+| Migrations | Flyway |
+| Build Tool | Maven |
+| Testing | JUnit 5 + Mockito |
+
+## 🏗️ Architecture
+
+```
+src/main/java/com/circlevibe/
+├── api/
+│   ├── controller/          # REST endpoints
+│   ├── dto/                 # Request/Response DTOs
+│   ├── service/             # Business logic
+│   └── exception/           # Global exception handling
+├── config/                  # Application configuration
+├── domain/
+│   ├── entity/              # JPA entities
+│   └── repository/          # Spring Data repositories
+└── security/
+    ├── jwt/                 # JWT token management
+    └── SecurityConfig.java  # Spring Security configuration
+```
+
+## 📚 Database Schema
+
+### Core Entities
+
+#### Users
+- User account management
+- Authentication credentials
+- Profile information
+- Chat status tracking
+- User blocking system
+
+#### Chats
+- Private/Group chat support
+- Chat types (PUBLIC/PRIVATE)
+- Participant management
+- Last message tracking
+- Encryption support
+
+#### Messages
+- Message content & status
+- Message types (TEXT, IMAGE, VIDEO, FILE, AUDIO)
+- Threading support
+- File attachments
+
+#### ChatParticipants
+- User-Chat relationship
+- Role-based access control
+- Mute status
+- Message sending capability
+
+#### Supporting Tables
+- `MessageFiles` - File attachments
+- `Threads` - Message threading
+- `ChatInvites` - Chat invitations
+- `UserConfirmations` - Email confirmations
+- `ChatParticipantGatewayStates` - WebSocket state
+
+## 🔐 Authentication
+
+### JWT Implementation
+- **Access Token**: 24 hours expiration
+- **Refresh Token**: 7 days expiration
+- **Algorithm**: HS512
+- **Bearer Token**: `Authorization: Bearer {token}`
+
+### Security Features
+- Password encryption with BCrypt
+- CORS configuration
+- CSRF protection disabled (Stateless API)
+- Session-less authentication
+
+## 🛣️ API Endpoints
+
+### Authentication
+
+#### Register
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "John",
+  "surname": "Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "username": "johndoe"
+}
+```
+
+#### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+#### Refresh Token
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+
+### Response Format
+
+#### Login Response
+```json
+{
+  "userId": 1,
+  "email": "john@example.com",
+  "firstname": "John",
+  "surname": "Doe",
+  "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refreshToken": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "tokenType": "Bearer",
+  "expiresIn": 86400000
+}
+```
+
+## 🔄 Feature Mapping (NestJS → Spring Boot)
+
+| NestJS | Spring Boot |
+|--------|-------------|
+| NestJS modules | Spring @Configuration beans |
+| Prisma models | JPA @Entity classes |
+| Prisma Client | Spring Data JPA Repositories |
+| bcrypt | BCryptPasswordEncoder |
+| jsonwebtoken | JJWT library |
+| Socket.IO | Spring WebSocket ready |
+| Swagger decorators | Springdoc OpenAPI annotations |
+| Jest tests | Spring Boot Test + Mockito |
+| PostgreSQL driver | PostgreSQL JDBC |
+
+## 📝 Configuration
+
+### Environment Variables
 
 ```bash
-# development
-$ yarn run start
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=circle_vibe
+DB_USER=postgres
+DB_PASSWORD=password
 
-# watch mode
-$ yarn run start:dev
+# JWT
+JWT_SECRET=your-32-character-secret-key-change-this-please!!!
+JWT_ACCESS_EXPIRATION=86400000      # 24 hours in ms
+JWT_REFRESH_EXPIRATION=604800000    # 7 days in ms
 
-# production mode
-$ yarn run start:prod
+# Server
+SERVER_PORT=8080
 
-# generate prisma db types for CLI
-$ yarn prisma:generate
-
-# migrate changes
-$ yarn prisma:migrate
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 ```
 
-## Run tests
+## 🧪 Testing
 
 ```bash
-# unit tests
-$ yarn run test
+# Run all tests
+mvn test
 
-# e2e tests
-$ yarn run test:e2e
+# Run with coverage
+mvn test jacoco:report
 
-# test coverage
-$ yarn run test:cov
+# Run integration tests
+mvn test -Dgroups=integration
 ```
 
-## Deployment
+## 📦 Build & Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Create JAR
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+mvn clean package
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Docker (Coming Soon)
+```dockerfile
+FROM openjdk:21-slim
+COPY target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+```
 
-## Resources
+## 🔄 Migration from NestJS
 
-Check out a few resources that may come in handy when working with NestJS:
+### Dependencies Mapping
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+| NestJS Package | Spring Boot Equivalent |
+|---|---|
+| `@nestjs/common` | Spring Framework Core |
+| `@nestjs/core` | Spring Boot Starter |
+| `@nestjs/security` | Spring Security |
+| `@prisma/client` | Spring Data JPA |
+| `@types/bcrypt` | spring-security-crypto |
+| `jsonwebtoken` | JJWT |
+| `Socket.IO` | Spring WebSocket |
+| `Swagger` | Springdoc OpenAPI |
 
-## Support
+### Data Type Mapping
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+| Prisma | JPA / PostgreSQL |
+|--------|------------------|
+| `String` | `VARCHAR(255)` / `String` |
+| `DateTime` | `TIMESTAMP` / `LocalDateTime` |
+| `Int` | `INTEGER` / `Integer` |
+| `Boolean` | `BOOLEAN` / `Boolean` |
+| `Enum` | `VARCHAR(50)` / `@Enumerated` |
+| `Int[]` | Collection / `@ElementCollection` |
 
-## Stay in touch
+## 🚀 Performance Features
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Database connection pooling (HikariCP)
+- JPA batch processing (25 inserts/updates per batch)
+- Query optimization with indexes
+- Lazy loading for relationships
+- Request filtering & authorization
 
-## License
+## 📚 Additional Resources
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Spring Data JPA Reference](https://spring.io/projects/spring-data-jpa)
+- [Springdoc OpenAPI](https://springdoc.org/)
+- [JJWT Documentation](https://github.com/jwtk/jjwt)
+- [Flyway Migrations](https://flywaydb.org/)
+
+## 📄 License
+
+UNLICENSED
+
+## 👤 Author
+
+AndrUsM - [@AndrUsM](https://github.com/AndrUsM)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please create a pull request with detailed descriptions.
+
+## 🐛 Issues
+
+Found a bug? Please open an issue with:
+- Description of the problem
+- Steps to reproduce
+- Expected vs actual behavior
+- Environment details
+
+---
+
+**Status**: Active Development  
+**Last Updated**: 2026-05-16
