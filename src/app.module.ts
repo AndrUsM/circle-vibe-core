@@ -2,7 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { DatabaseModule, DatabaseService } from './core/database';
-import { FileServiceModule, EmailServiceModule, EmailServiceHttpModule } from './core/services';
+import {
+  FileServiceModule,
+  EmailServiceModule,
+  EmailServiceHttpModule,
+} from './core/services';
 import { ChatGatewayModule } from './gateways/chat';
 
 import {
@@ -13,7 +17,7 @@ import {
   ParticipantGatewayStateModule,
   ChatInviteModule,
   ChatModule,
-  ThreadModule
+  ThreadModule,
 } from './modules';
 import { UserConfirmationModule } from './modules/user-confirmation';
 

@@ -1,4 +1,3 @@
-export interface MessagesPaginatedInputDto {
-  page: number;
-  pageSize: number;
-}
+import { EntityPaginatedInputDto } from '../../shared';
+
+export type MessagesPaginatedInputDto = EntityPaginatedInputDto;

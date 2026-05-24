@@ -14,7 +14,6 @@ import {
   UserService,
   ParticipantService,
   ParticipantGatewayStateService,
-  ThreadService,
 } from 'src/modules';
 import { GetMessagesByChatPaginatedParams } from 'src/modules/message/params/get-messages-by-chat-paginated.params';
 
@@ -23,7 +22,6 @@ export class ChatGatewayService {
   #dataLimit = DEFAULT_PAGINATION_PAGE_SIZE;
 
   constructor(
-    private readonly threadService: ThreadService,
     private readonly messageService: MessageService,
     private readonly chatService: ChatService,
     private readonly authService: AuthService,

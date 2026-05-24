@@ -93,26 +93,26 @@ export class MessageMappers {
   }
 
   mapUploadedFileToMessageFile(
-      outputDto:
-        | UploadFileOutputDto
-        | UploadVideoOutputDto
-        | UploadImageOutputDto,
-      messageFilesInputDto: MessageFilesInputDto,
-      messageId: number,
-    ) {
-      const { fileName, description, type, entityType } = messageFilesInputDto;
-      const { filePath } = outputDto;
-      const optimisedFilePath = (outputDto as UploadVideoOutputDto)
-        ?.optimisedFilePath;
-  
-      return {
-        url: filePath,
-        optimizedUrl: optimisedFilePath ?? '',
-        fileName,
-        description,
-        type,
-        messageId,
-        entityType: entityType ?? MessageFileEntityType.FILE,
-      };
-    }
+    outputDto:
+      | UploadFileOutputDto
+      | UploadVideoOutputDto
+      | UploadImageOutputDto,
+    messageFilesInputDto: MessageFilesInputDto,
+    messageId: number,
+  ) {
+    const { fileName, description, type, entityType } = messageFilesInputDto;
+    const { filePath } = outputDto;
+    const optimisedFilePath = (outputDto as UploadVideoOutputDto)
+      ?.optimisedFilePath;
+
+    return {
+      url: filePath,
+      optimizedUrl: optimisedFilePath ?? '',
+      fileName,
+      description,
+      type,
+      messageId,
+      entityType: entityType ?? MessageFileEntityType.FILE,
+    };
+  }
 }

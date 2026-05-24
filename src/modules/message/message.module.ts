@@ -7,7 +7,13 @@ import { MessageRepository } from './message.repository';
 import { MessageMappers } from './message.mappers';
 
 @Module({
-  providers: [MessageService, FileService, ChatService, MessageRepository, MessageMappers],
-  controllers: [MessageController]
+  providers: [
+    MessageService,
+    FileService,
+    ChatService,
+    MessageRepository,
+    MessageMappers,
+  ],
+  controllers: [MessageController],
 })
 export class MessageModule {}

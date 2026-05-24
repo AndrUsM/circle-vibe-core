@@ -40,7 +40,7 @@ export class AuthService {
         isExpired: true,
         userId: null,
         isValid: false,
-      }
+      };
     }
   };
 

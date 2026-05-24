@@ -16,7 +16,7 @@ import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { AccountStatus } from '@circle-vibe/shared';
 
-import { UserService } from '../user/user.service';
+import { UserService } from '../user/service/user.service';
 import {
   AuthentificationInput,
   AuthorizationInput,
@@ -28,11 +28,13 @@ import { comparePasswords } from './utils';
 import { JwtAuthGuard } from 'src/guards';
 import { HashedTokenParams } from './types';
 import { AuthStartUpService } from './services';
+import { UserAuthService } from '../user/service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private userService: UserService,
+    private userAuthService: UserAuthService,
     private authService: AuthService,
     private authStartUpService: AuthStartUpService,
   ) {}
@@ -120,7 +122,7 @@ export class AuthController {
       throw new NotFoundException('User not found');
     }
 
-    const isPasswordsMatch = this.userService.comparePasswords(
+    const isPasswordsMatch = this.userAuthService.comparePasswords(
       params.password,
       user.password,
     );
@@ -192,7 +194,9 @@ export class AuthController {
       throw new NotFoundException('Passwords do not match');
     }
 
-    const encryptedPassword = this.userService.encryptPassword(params.password);
+    const encryptedPassword = this.userAuthService.encryptPassword(
+      params.password,
+    );
     const createdUser = await this.userService.createUser({
       ...params,
       type: params.type,

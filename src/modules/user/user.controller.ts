@@ -12,7 +12,7 @@ import {
   Put,
 } from '@nestjs/common';
 
-import { UserService } from './user.service';
+import { UserService } from './service/user.service';
 
 import { AuthService } from '../auth';
 import { UpdateUserDtoInput } from './dtos';
@@ -93,7 +93,7 @@ export class UserController {
   @Post(':id/deactivate-account')
   @HttpCode(200)
   async deactivateAccount(@Param('id') userId: number) {
-    return this.userService.partiallyUpdateUser(Number(userId), {
+    return this.userService.partiallyUpdate(Number(userId), {
       accountStatus: AccountStatus.DEACTIVATED,
       isHiddenContactInfo: true,
       isAllowedToSearch: false,
@@ -103,7 +103,7 @@ export class UserController {
   @Post(':id/activate-account')
   @HttpCode(200)
   async activateAccount(@Param('id') userId: number) {
-    return this.userService.partiallyUpdateUser(Number(userId), {
+    return this.userService.partiallyUpdate(Number(userId), {
       accountStatus: AccountStatus.ACTIVE,
       isHiddenContactInfo: false,
       isAllowedToSearch: true,

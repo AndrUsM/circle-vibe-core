@@ -11,7 +11,7 @@ import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 import { MessageCreateInputDto, MessagesPaginatedInputDto } from './dtos';
 import { MessageService } from './message.service';
-import { ChatService } from '../chat/chat.service';
+import { ChatService } from '../chat';
 
 @Controller('message')
 export class MessageController {

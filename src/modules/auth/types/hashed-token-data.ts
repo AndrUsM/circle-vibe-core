@@ -1,1 +1,3 @@
-export interface HashedTokenParams {   userId: number | null; }
+export interface HashedTokenParams {
+  userId: number | null;
+}

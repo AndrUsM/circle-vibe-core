@@ -2,10 +2,17 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserService } from '../user';
-import { EmailService, EmailServiceHttpModule, FileService } from 'src/core/services';
+import {
+  EmailService,
+  EmailServiceHttpModule,
+  FileService,
+} from 'src/core/services';
+import { AuthStartUpService } from './services';
+
 import { ChatService } from '../chat';
 import { ParticipantService } from '../participant/participant.service';
-import { AuthStartUpService } from './services';
+import { UserAuthService } from '../user/service';
+import { UserRepository } from '../user/user.repository';
 
 @Module({
   imports: [EmailServiceHttpModule],
@@ -16,6 +23,8 @@ import { AuthStartUpService } from './services';
     FileService,
     EmailService,
     ChatService,
+    UserAuthService,
+    UserRepository,
     AuthStartUpService,
     ParticipantService,
   ],
