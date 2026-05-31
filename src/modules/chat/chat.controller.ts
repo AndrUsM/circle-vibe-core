@@ -141,7 +141,6 @@ export class ChatController {
     }
 
     return this.participantService.updateChatParticipant(
-      Number(chatId),
       Number(participantId),
       payload,
     );
@@ -291,7 +290,7 @@ export class ChatController {
       throw new BadRequestException('invite-token.already-joined');
     }
 
-    const chatParticipant = await this.participantService.createChatParticipant(
+    const chatParticipant = await this.participantService.create(
       {
         chatId: data.chatId,
         userId: data.targetUserId,

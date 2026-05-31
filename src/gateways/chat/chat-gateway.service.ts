@@ -100,7 +100,7 @@ export class ChatGatewayService {
   }
 
   async joinChat(chatId: number, userId: number) {
-    const chatParticipant = await this.participantService.getChatParticipants({
+    const chatParticipant = await this.participantService.getChatParticipant({
       chatId,
       userId,
     });

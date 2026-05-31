@@ -317,8 +317,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() params: RequestChatParticipantsWithPagniationSocketParams,
   ) {
-    const chatParticipants =
-      await this.participantService.getChatParticipants(params);
+    const chatParticipants = await this.participantService.getChatParticipant(params);
 
     client.emit(ChatSocketCommand.RECEIVE_CHAT_PARTICIPANTS, chatParticipants);
     client.emit(ChatSocketCommand.SCROLL_TO_END_OF_MESSAGES);

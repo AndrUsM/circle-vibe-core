@@ -12,11 +12,11 @@ import {
 import { FileService } from 'src/core/services';
 import {
   ParticipantService,
+  ParticipantRepository,
   ParticipantGatewayStateService,
 } from 'src/modules';
 import { ChatGatewayService } from './chat-gateway.service';
-import { UserAuthService } from '../../modules/user/service';
-import { UserRepository } from '../../modules/user/user.repository';
+import { UserAuthService, UserRepository } from '../../modules/user';
 
 @Module({
   providers: [
@@ -31,6 +31,7 @@ import { UserRepository } from '../../modules/user/user.repository';
     UserRepository,
     FileService,
     ParticipantService,
+    ParticipantRepository,
     ParticipantGatewayStateService,
     ChatGatewayService,
     ThreadService,

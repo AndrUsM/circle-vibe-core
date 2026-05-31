@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import { ParticipantService } from '../participant';
+import { ParticipantService, ParticipantRepository } from '../participant';
 import { UserService, UserRepository, UserAuthService } from '../user';
 import { ChatInviteService } from '../chat-invites';
 import { FileService } from 'src/core/services';
@@ -12,6 +12,7 @@ import { MessageService, MessageRepository, MessageMappers } from '../message';
   providers: [
     ChatService,
     ParticipantService,
+    ParticipantRepository,
     UserService,
     ChatInviteService,
     FileService,

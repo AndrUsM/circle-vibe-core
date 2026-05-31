@@ -10,24 +10,13 @@ import {
 import { AuthStartUpService } from './services';
 
 import { ChatService } from '../chat';
-import { ParticipantService } from '../participant/participant.service';
-import { UserAuthService } from '../user/service';
-import { UserRepository } from '../user/user.repository';
+import { ParticipantService, ParticipantRepository } from '../participant';
+import { UserAuthService, UserRepository } from '../user';
 
 @Module({
   imports: [EmailServiceHttpModule],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    UserService,
-    FileService,
-    EmailService,
-    ChatService,
-    UserAuthService,
-    UserRepository,
-    AuthStartUpService,
-    ParticipantService,
-  ],
+  providers: [AuthService, UserService, FileService, EmailService, ChatService, UserAuthService, UserRepository, AuthStartUpService, ParticipantService, ParticipantRepository],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -1,106 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { ChatParticipant, UserChatRole } from '@prisma/client';
-import { DatabaseService } from 'src/core';
-import {
-  ChatsParticipantsWithUserParam,
-  GetChatParticipantInput,
-} from './params';
-import {
-  ChatsParticipantsWithUser,
-  CreateChatParticipantInput,
-  UpdateChatParticipantInput,
-} from './dtos';
+import { ChatsParticipantsWithUserParam, GetChatParticipantInput, ParticipantListParam } from './params';
+import { ChatsParticipantsWithUser, CreateChatParticipantInput, UpdateChatParticipantInput } from './dtos';
+import { ParticipantRepository } from './participant.repository';
 
 @Injectable()
 export class ParticipantService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(private readonly participantRepository: ParticipantRepository) {}
 
-  createChatParticipant(
-    createParticipantInputDto: CreateChatParticipantInput,
-  ): Promise<ChatParticipant> {
-    return this.databaseService.chatParticipant.create({
-      data: createParticipantInputDto,
-      include: {
-        user: true,
-      },
-    });
+  create(createParticipantInputDto: CreateChatParticipantInput): Promise<ChatParticipant> {
+    return this.participantRepository.create(createParticipantInputDto);
   }
 
-  async getChatsParticipantsByAuthorizedUser({
-    userId,
-  }: ChatsParticipantsWithUserParam): Promise<ChatsParticipantsWithUser[]> {
-    const chatIds = await this.databaseService.chatParticipant.findMany({
-      distinct: 'chatId',
-      where: {
-        userId,
-      },
-      select: {
-        chatId: true,
-      },
-    });
-    const mappedIds = chatIds.map(({ chatId }) => chatId);
-
-    return this.databaseService.chatParticipant.findMany({
-      distinct: 'userId',
-      select: {
-        id: true,
-        user: true,
-      },
-      where: {
-        chatId: {
-          in: mappedIds
-        }
-      }
-    }) as Promise<ChatsParticipantsWithUser[]>
+  async getChatsParticipantsByAuthorizedUser({ userId }: ChatsParticipantsWithUserParam): Promise<ChatsParticipantsWithUser[]> {
+    return this.participantRepository.listByAuthorizedUser(userId);
   }
 
-  async getChatParticipants(
-    params: GetChatParticipantInput,
-  ): Promise<ChatParticipant | null> {
-    const { userId, chatId } = params;
-    return this.databaseService.chatParticipant.findFirst({
-      where: {
-        userId,
-        chatId,
-      },
-      include: {
-        user: true,
-      },
-    });
+  async list(params: ParticipantListParam): Promise<ChatParticipant[]> {
+    return this.participantRepository.list(params);
   }
 
-  async updateChatParticipant(
-    chatId: number,
-    participantId: number,
-    params: UpdateChatParticipantInput,
-  ) {
-    const chatParticipant =
-      await this.databaseService.chatParticipant.findUnique({
-        where: {
-          id: participantId,
-        },
-      });
-
-    return this.databaseService.chatParticipant.update({
-      where: {
-        id: participantId,
-      },
-      include: {
-        user: true,
-      },
-      data: {
-        ...chatParticipant,
-        ...params,
-      },
-    });
+  async getChatParticipant(params: GetChatParticipantInput): Promise<ChatParticipant | null> {
+    return this.participantRepository.get(params);
   }
 
-  async getOrCreateChatParticipant(
-    params: GetChatParticipantInput,
-  ): Promise<ChatParticipant | null> {
-    const participant = await this.databaseService.chatParticipant.findFirst({
-      where: params,
-    });
+  async updateChatParticipant(participantId: number, params: UpdateChatParticipantInput) {
+    return this.participantRepository.updatePartial(participantId, params);
+  }
+
+  async getOrCreateChatParticipant(params: GetChatParticipantInput): Promise<ChatParticipant | null> {
+    const participant = await this.participantRepository.get(params);
 
     if (participant) {
       return participant;
@@ -109,49 +38,23 @@ export class ParticipantService {
     return this.createParticipantWithDefaultOptions(params);
   }
 
-  async getChatParticipantById(
-    chatParticipantId: number,
-  ): Promise<ChatParticipant | null> {
-    return this.databaseService.chatParticipant.findUnique({
-      where: {
-        id: chatParticipantId,
-      },
-    });
+  async getChatParticipantById(chatParticipantId: number): Promise<ChatParticipant | null> {
+    return this.participantRepository.getById(chatParticipantId);
   }
 
-  async getUserIdByChatParams(
-    participantId: number,
-    chatId: number,
-  ): Promise<number | undefined> {
-    const response = await this.databaseService.chatParticipant.findFirst({
-      where: {
-        id: participantId,
-        chatId,
-      },
-      select: {
-        userId: true,
-      },
-    });
-
-    return response?.userId;
+  async getUserIdByChatParams(participantId: number, chatId: number): Promise<number | null> {
+    return this.participantRepository.getUserId({ participantId, chatId });
   }
 
-  async createParticipantWithDefaultOptions(
-    params: GetChatParticipantInput,
-  ): Promise<ChatParticipant> {
-    const chatParticipantExists =
-      await this.databaseService.chatParticipant.findFirst({
-        where: {
-          chatId: params.chatId,
-          chatRole: UserChatRole.ADMIN,
-        },
-      });
+  async createParticipantWithDefaultOptions(params: GetChatParticipantInput): Promise<ChatParticipant> {
+    const chatParticipantExists = await this.participantRepository.isExists({
+      chatId: params.chatId,
+      chatRole: UserChatRole.ADMIN,
+    });
 
-    const chatRole = chatParticipantExists
-      ? UserChatRole.MEMBER
-      : UserChatRole.ADMIN;
+    const chatRole = chatParticipantExists ? UserChatRole.MEMBER : UserChatRole.ADMIN;
 
-    return this.createChatParticipant({
+    return this.participantRepository.create({
       ...params,
       chatRole,
     });
