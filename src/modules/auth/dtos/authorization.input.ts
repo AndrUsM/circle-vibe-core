@@ -1,5 +1,5 @@
-import { CountryCode, UserType } from "@circle-vibe/shared";
-import { ApiProperty } from "@nestjs/swagger";
+import { CountryCode, UserType } from '@circle-vibe/shared';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthorizationInput {
   /**
@@ -78,7 +78,7 @@ export class AuthorizationInput {
   })
   isHiddenContactInfo: boolean;
 
-    /**
+  /**
    * Is user hidden from search
    * @example true
    */

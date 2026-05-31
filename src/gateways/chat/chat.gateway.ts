@@ -1,12 +1,4 @@
-import {
-  SubscribeMessage,
-  WebSocketGateway,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  MessageBody,
-  ConnectedSocket,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, MessageBody, ConnectedSocket, WebSocketServer } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 
 import {
@@ -27,14 +19,7 @@ import {
 } from '@circle-vibe/shared';
 import { UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/guards';
-import {
-  ChatService,
-  MessageRepository,
-  MessageService,
-  ParticipantGatewayStateService,
-  ThreadService,
-  UserService,
-} from 'src/modules';
+import { ChatService, MessageRepository, MessageService, ParticipantGatewayStateService, ThreadService, UserService } from 'src/modules';
 import { ParticipantService } from 'src/modules/participant/participant.service';
 import { MessageFileVideoCreateDto } from 'src/modules/message/dtos';
 import { ChatGatewayService } from './chat-gateway.service';
@@ -80,10 +65,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.RECEIVE_MESSAGES)
-  async handleReceiveMessages(
-    @MessageBody() data: RefreshChatsSocketParams,
-    @ConnectedSocket() client: Socket,
-  ) {
+  async handleReceiveMessages(@MessageBody() data: RefreshChatsSocketParams, @ConnectedSocket() client: Socket) {
     const { chatId } = data;
     const roomName = String(chatId);
     const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
@@ -106,10 +88,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.SEND_VIDEO_FILE_MESSAGE)
-  async handleSendVideoFile(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: MessageFileVideoCreateDto,
-  ) {
+  async handleSendVideoFile(@ConnectedSocket() client: Socket, @MessageBody() data: MessageFileVideoCreateDto) {
     const chatId = data.chatId;
     const roomName = String(chatId);
     const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
@@ -139,34 +118,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.MESSAGE_TYPE_START_TYPING)
-  async handleNotifyAboutTypingStart(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: NotifyAboutTypingSocketParams,
-  ) {
+  async handleNotifyAboutTypingStart(@ConnectedSocket() client: Socket, @MessageBody() params: NotifyAboutTypingSocketParams) {
     const roomName = String(params.chatId);
-    client.broadcast
-      .to(roomName)
-      .emit(ChatSocketCommand.MESSAGE_TYPE_START_TYPING, params);
+    client.broadcast.to(roomName).emit(ChatSocketCommand.MESSAGE_TYPE_START_TYPING, params);
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.MESSAGE_TYPE_STOP_TYPING)
-  async handleNotifyAboutTypingStop(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: NotifyAboutTypingSocketParams,
-  ) {
+  async handleNotifyAboutTypingStop(@ConnectedSocket() client: Socket, @MessageBody() params: NotifyAboutTypingSocketParams) {
     const roomName = String(params.chatId);
-    client.broadcast
-      .to(roomName)
-      .emit(ChatSocketCommand.MESSAGE_TYPE_STOP_TYPING, params);
+    client.broadcast.to(roomName).emit(ChatSocketCommand.MESSAGE_TYPE_STOP_TYPING, params);
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.SEND_MESSAGE)
-  async handleSendMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: SendMessageChatSocketParams,
-  ) {
+  async handleSendMessage(@ConnectedSocket() client: Socket, @MessageBody() data: SendMessageChatSocketParams) {
     const chatId = data.chatId;
     const roomName = String(chatId);
     const message = data;
@@ -183,7 +149,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     const messages = await this.chatGatewayService.getMessageByChat(chatId, {
-      currentUserId
+      currentUserId,
     });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
@@ -193,10 +159,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.SEND_FILE_MESSAGE)
-  async handleSendFile(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: SendFileMessageChatSocketParams,
-  ) {
+  async handleSendFile(@ConnectedSocket() client: Socket, @MessageBody() params: SendFileMessageChatSocketParams) {
     const { chatId } = params;
     const roomName = String(chatId);
     const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
@@ -208,7 +171,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.messageService.createFileMessage(params);
 
     const messages = await this.chatGatewayService.getMessageByChat(chatId, {
-      currentUserId
+      currentUserId,
     });
 
     this.server.to(roomName).emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
@@ -218,10 +181,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.JOIN_CHAT)
-  async handleJoinChat(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: JoinChatSocketParams,
-  ) {
+  async handleJoinChat(@ConnectedSocket() client: Socket, @MessageBody() params: JoinChatSocketParams) {
     const { chatId } = params;
     const userId = await this.chatGatewayService.getCurrentUserState(client);
     const roomName = String(chatId);
@@ -230,8 +190,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const { chatParticipant, messagesForChat } =
-      await this.chatGatewayService.joinChat(chatId, userId);
+    const { chatParticipant, messagesForChat } = await this.chatGatewayService.joinChat(chatId, userId);
 
     client.join(roomName);
 
@@ -242,30 +201,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.CREATE_CHAT)
-  async handleCreateChat(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() chatInputDto: CreateChatSocketParams,
-  ) {
+  async handleCreateChat(@ConnectedSocket() client: Socket, @MessageBody() chatInputDto: CreateChatSocketParams) {
     const userId = await this.chatGatewayService.getCurrentUserState(client);
 
     if (!userId) {
       return;
     }
 
-    const chats = await this.chatGatewayService.createChat(
-      userId,
-      chatInputDto,
-    );
+    const chats = await this.chatGatewayService.createChat(userId, chatInputDto);
 
     client.emit(ChatSocketCommand.RECEIVE_CHATS, chats);
   }
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.REQUEST_MESSAGES_WITH_PAGINATION)
-  async requestMessagesWithPagination(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: RequestMessagesWithPaginationChatSocketParams,
-  ) {
+  async requestMessagesWithPagination(@ConnectedSocket() client: Socket, @MessageBody() params: RequestMessagesWithPaginationChatSocketParams) {
     const { chatId, page, content, pageSize, senderIds, threadId } = params;
     const currentUserId = await this.chatGatewayService.getCurrentUserState(client);
 
@@ -283,8 +233,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         threadId,
         content,
         senderIds,
-        currentUserId
-      }
+        currentUserId,
+      },
     );
 
     client.emit(ChatSocketCommand.RECEIVE_MESSAGES, messages);
@@ -292,10 +242,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.REQUEST_CHATS_WITH_PAGINATION)
-  async requestChatsWithPagination(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: RequestChatsWithPaginationChatSocketParams,
-  ) {
+  async requestChatsWithPagination(@ConnectedSocket() client: Socket, @MessageBody() params: RequestChatsWithPaginationChatSocketParams) {
     const { name, userId, page, pageSize, removed, empty, type } = params;
 
     const chats = await this.chatService.getAllPaginated({
@@ -313,10 +260,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.REQUEST_CHAT_PARTICIPANTS_WITH_PAGINATION)
-  async requestChatParticipantsWithPagination(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() params: RequestChatParticipantsWithPagniationSocketParams,
-  ) {
+  async requestChatParticipantsWithPagination(@ConnectedSocket() client: Socket, @MessageBody() params: RequestChatParticipantsWithPagniationSocketParams) {
     const chatParticipants = await this.participantService.getChatParticipant(params);
 
     client.emit(ChatSocketCommand.RECEIVE_CHAT_PARTICIPANTS, chatParticipants);
@@ -325,10 +269,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsAuthGuard)
   @SubscribeMessage(ChatSocketCommand.RECEIVE_CHATS)
-  async handleRefreshChats(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() roomName?: string,
-  ) {
+  async handleRefreshChats(@ConnectedSocket() client: Socket, @MessageBody() roomName?: string) {
     const userId = await this.chatGatewayService.getCurrentUserState(client);
 
     if (!userId) {
@@ -353,9 +294,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async #notifyUserAboutNewMessage(client: Socket, chatId: number) {
     const roomName = String(chatId);
 
-    client.broadcast
-      .to(roomName)
-      .emit(ChatSocketCommand.NOTIFY_ABOUT_NEW_MESSAGE);
+    client.broadcast.to(roomName).emit(ChatSocketCommand.NOTIFY_ABOUT_NEW_MESSAGE);
     client.emit(ChatSocketCommand.SCROLL_TO_END_OF_MESSAGES);
   }
 }

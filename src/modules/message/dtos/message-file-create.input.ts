@@ -1,5 +1,5 @@
-import { MessageType } from "@circle-vibe/shared";
-import { UploadFileMetaInputDto } from "./upload-file-meta.input";
+import { MessageType } from '@circle-vibe/shared';
+import { UploadFileMetaInputDto } from './upload-file-meta.input';
 
 export interface MessageFileCreateInputDto {
   content: string;

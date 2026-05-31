@@ -5,22 +5,16 @@ import { UserConfirmationConfirmInput, UserConfirmationGenerateCode } from './dt
 
 @Controller('user-confirmation')
 export class UserConfirmationController {
-  constructor(
-    private readonly userConfirmationService: UserConfirmationService,
-  ) {}
+  constructor(private readonly userConfirmationService: UserConfirmationService) {}
 
   @Post('generate-code')
   @HttpCode(HttpStatus.OK)
-  async generateConfirmationCode(
-    @Body() userConfirmationGenerateCodeInputDto: UserConfirmationGenerateCode,
-  ) {
+  async generateConfirmationCode(@Body() userConfirmationGenerateCodeInputDto: UserConfirmationGenerateCode) {
     if (!userConfirmationGenerateCodeInputDto?.email) {
       throw new BadRequestException();
     }
 
-    const response = await this.userConfirmationService.generateConfirmationCode(
-      userConfirmationGenerateCodeInputDto,
-    );
+    const response = await this.userConfirmationService.generateConfirmationCode(userConfirmationGenerateCodeInputDto);
 
     if (!response) {
       throw new BadRequestException();

@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatParticipantGatewayState } from '@prisma/client';
 
 import { DatabaseService } from 'src/core';
-import {
-  ParticipantGatewayCreateInputDto,
-  ParticipantGatewayDeleteInputDto,
-} from './dtos';
+import { ParticipantGatewayCreateInputDto, ParticipantGatewayDeleteInputDto } from './dtos';
 
 @Injectable()
 export class ParticipantGatewayStateService {
@@ -33,21 +30,14 @@ export class ParticipantGatewayStateService {
   }
 
   async delete(params: ParticipantGatewayDeleteInputDto) {
-
-    return this.databaseService.$executeRawUnsafe(
-      `DELETE FROM "ChatParticipantGatewayState" WHERE "clientId" = '${params.clientId}'`,
-    )
+    return this.databaseService.$executeRawUnsafe(`DELETE FROM "ChatParticipantGatewayState" WHERE "clientId" = '${params.clientId}'`);
   }
 
   async deleteByUserId(userId: number) {
-    return this.databaseService.$executeRawUnsafe(
-      `DELETE FROM "ChatParticipantGatewayState" WHERE "userId" = ${userId}`,
-    );
+    return this.databaseService.$executeRawUnsafe(`DELETE FROM "ChatParticipantGatewayState" WHERE "userId" = ${userId}`);
   }
 
-  async getByClientId(
-    clientId: string,
-  ): Promise<ChatParticipantGatewayState | null> {
+  async getByClientId(clientId: string): Promise<ChatParticipantGatewayState | null> {
     return this.databaseService.chatParticipantGatewayState.findFirst({
       where: {
         clientId,
@@ -55,9 +45,7 @@ export class ParticipantGatewayStateService {
     });
   }
 
-  async getByUserId(
-    userId: number,
-  ): Promise<ChatParticipantGatewayState | null> {
+  async getByUserId(userId: number): Promise<ChatParticipantGatewayState | null> {
     return this.databaseService.chatParticipantGatewayState.findFirst({
       where: {
         userId,

@@ -1,12 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
-import {
-  Bucket,
-  UploadFileOutputDto,
-  UploadImageOutputDto,
-  UploadVideoOutputDto,
-} from '@circle-vibe/shared';
+import { Bucket, UploadFileOutputDto, UploadImageOutputDto, UploadVideoOutputDto } from '@circle-vibe/shared';
 import { MessageFileEntityType } from '@prisma/client';
 import { FILE_SERVER_URL } from 'src/configuration';
 
@@ -20,15 +15,10 @@ export class FileService {
   constructor(private readonly httpService: HttpService) {}
 
   composeFileUrl(urlWithHostname: string, bucket: string): string | null {
-    return urlWithHostname
-      ? `${FILE_SERVER_URL}/${urlWithHostname}?bucket=${bucket}`
-      : null;
+    return urlWithHostname ? `${FILE_SERVER_URL}/${urlWithHostname}?bucket=${bucket}` : null;
   }
 
-  async createBucket(
-    name: string,
-    description?: string,
-  ): Promise<Bucket | null> {
+  async createBucket(name: string, description?: string): Promise<Bucket | null> {
     try {
       const response = await this.httpService.axiosRef<Bucket | null>({
         baseURL: FILE_SERVER_URL,
@@ -38,7 +28,7 @@ export class FileService {
         data: {
           name,
           description,
-        }
+        },
       });
 
       return response.data;
@@ -52,10 +42,7 @@ export class FileService {
     payload.append('file', file);
 
     try {
-      const respose = await this.httpService.axiosRef.post(
-        this.uploadFilesUrl,
-        payload,
-      );
+      const respose = await this.httpService.axiosRef.post(this.uploadFilesUrl, payload);
 
       return respose.data as UploadFileOutputDto;
     } catch {
@@ -63,10 +50,7 @@ export class FileService {
     }
   }
 
-  async deleteFile(
-    type: MessageFileEntityType,
-    fileUrlWithoutHostname: string,
-  ) {
+  async deleteFile(type: MessageFileEntityType, fileUrlWithoutHostname: string) {
     if (!fileUrlWithoutHostname) {
       return null;
     }
@@ -79,22 +63,16 @@ export class FileService {
       }
 
       if (type === MessageFileEntityType.FILE) {
-        const response = await this.httpService.axiosRef.delete(
-          `${this.uploadFilesUrl}/${fileName}`,
-        );
+        const response = await this.httpService.axiosRef.delete(`${this.uploadFilesUrl}/${fileName}`);
         return response.data;
       }
 
       if (type === MessageFileEntityType.IMAGE) {
-        const response = await this.httpService.axiosRef.delete(
-          `${this.uploadImagesUrl}/${fileName}`,
-        );
+        const response = await this.httpService.axiosRef.delete(`${this.uploadImagesUrl}/${fileName}`);
         return response.data;
       }
 
-      const response = await this.httpService.axiosRef.delete(
-        `${this.uploadVideosUrl}/${fileUrlWithoutHostname}`,
-      );
+      const response = await this.httpService.axiosRef.delete(`${this.uploadVideosUrl}/${fileUrlWithoutHostname}`);
       return response.data;
     } catch (error) {
       return null;
@@ -106,10 +84,7 @@ export class FileService {
     payload.append('video', video);
 
     try {
-      const respose = await this.httpService.axiosRef.post(
-        this.uploadVideosUrl,
-        payload,
-      );
+      const respose = await this.httpService.axiosRef.post(this.uploadVideosUrl, payload);
 
       return respose.data;
     } catch {
@@ -122,10 +97,7 @@ export class FileService {
     payload.append('image', image);
 
     try {
-      const respose = await this.httpService.axiosRef.post(
-        this.uploadImagesUrl,
-        payload,
-      );
+      const respose = await this.httpService.axiosRef.post(this.uploadImagesUrl, payload);
 
       return respose.data;
     } catch {

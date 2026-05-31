@@ -1,4 +1,4 @@
-import { User } from "@circle-vibe/shared";
+import { User } from '@circle-vibe/shared';
 
 export interface ChatsParticipantsWithUser {
   user: User;

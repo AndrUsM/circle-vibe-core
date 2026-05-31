@@ -13,17 +13,11 @@ export class UserService {
     private userRepository: UserRepository,
   ) {}
 
-  async partiallyUpdate(
-    id: number,
-    updateUserInputDto: Partial<UpdateUserDtoInput>,
-  ) {
+  async partiallyUpdate(id: number, updateUserInputDto: Partial<UpdateUserDtoInput>) {
     return this.userRepository.partiallyUpdate(id, updateUserInputDto);
   }
 
-  async updateUser(
-    id: number,
-    updateUserInputDto: UpdateUserDtoInput,
-  ): Promise<User | null> {
+  async updateUser(id: number, updateUserInputDto: UpdateUserDtoInput): Promise<User | null> {
     return this.userRepository.updateUser(id, updateUserInputDto);
   }
 
@@ -38,10 +32,7 @@ export class UserService {
     return createdUser as User;
   }
 
-  async checkExistence(user: {
-    email?: string;
-    primaryPhone?: string;
-  }): Promise<boolean> {
+  async checkExistence(user: { email?: string; primaryPhone?: string }): Promise<boolean> {
     return this.userRepository.checkExistence(user);
   }
 

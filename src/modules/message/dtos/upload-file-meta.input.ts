@@ -1,8 +1,5 @@
-import { MessageFile } from "@prisma/client";
+import { MessageFile } from '@prisma/client';
 
-export type UploadFileMetaInputDto = Omit<
-  MessageFile,
-  'id' | 'messageId | url'
-> & {
+export type UploadFileMetaInputDto = Omit<MessageFile, 'id' | 'messageId | url'> & {
   fileType: string;
 };

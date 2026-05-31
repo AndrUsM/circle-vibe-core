@@ -1,4 +1,4 @@
-import { UserChatRole } from "@prisma/client";
+import { UserChatRole } from '@prisma/client';
 
 export interface CreateChatInviteInputDto {
   chatId: number;
@@ -7,4 +7,4 @@ export interface CreateChatInviteInputDto {
   fromChatParticipantId: number;
   token: string;
   expirationDate: Date;
-};
+}

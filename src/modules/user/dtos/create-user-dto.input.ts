@@ -1,4 +1,4 @@
-import { UserType } from "@circle-vibe/shared";
+import { UserType } from '@circle-vibe/shared';
 
 export interface CreateUserDtoInput {
   username: string;

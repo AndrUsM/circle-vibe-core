@@ -6,13 +6,7 @@ import { FileService } from 'src/core/services';
 import { UserRepository } from './user.repository';
 
 @Module({
-  providers: [
-    UserService,
-    UserAuthService,
-    UserRepository,
-    AuthService,
-    FileService,
-  ],
+  providers: [UserService, UserAuthService, UserRepository, AuthService, FileService],
   controllers: [UserController],
 })
 export class UsersModule {}

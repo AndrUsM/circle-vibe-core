@@ -2,9 +2,7 @@ import { CountryCode } from '@circle-vibe/shared';
 
 import { Prisma, User } from '@prisma/client';
 
-export const composeUserUpdateInput = (
-  user: Omit<User, 'accountStatus'>,
-): Prisma.UserUpdateInput => {
+export const composeUserUpdateInput = (user: Omit<User, 'accountStatus'>): Prisma.UserUpdateInput => {
   return {
     username: user.username,
     firstname: user.firstname,
@@ -13,7 +11,7 @@ export const composeUserUpdateInput = (
     isAllowedToSearch: user.isAllowedToSearch,
     isHiddenContactInfo: user.isHiddenContactInfo,
     city: user.city,
-    country: user.country as CountryCode,
+    country: user.country,
     email: user.email,
     primaryPhone: user.primaryPhone,
     blockedUserIds: user.blockedUserIds,

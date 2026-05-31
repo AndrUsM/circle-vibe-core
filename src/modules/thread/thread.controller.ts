@@ -4,7 +4,7 @@ import { ThreadService } from './thread.service';
 
 @Controller('threads')
 export class ThreadController {
-  constructor(private readonly threadService: ThreadService){}
+  constructor(private readonly threadService: ThreadService) {}
 
   @Post()
   @HttpCode(201)

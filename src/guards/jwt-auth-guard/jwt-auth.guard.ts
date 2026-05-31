@@ -1,19 +1,12 @@
 import * as jwt from 'jsonwebtoken';
 import { isTokenExpired } from '@circle-vibe/shared';
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { HashedTokenParams } from 'src/modules/auth/types';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request: Request & HashedTokenParams = context
-      .switchToHttp()
-      .getRequest();
+    const request: Request & HashedTokenParams = context.switchToHttp().getRequest();
 
     const token = (request.headers['authorization'] as string) ?? null;
 

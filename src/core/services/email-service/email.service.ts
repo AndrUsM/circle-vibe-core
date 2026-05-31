@@ -11,10 +11,7 @@ export class EmailService {
 
   async sendEmail(sendEmailParams: EmailSendParams): Promise<void | null> {
     try {
-      const response = await this.httpService.axiosRef.post(
-        this.sendEmailUrl,
-        sendEmailParams,
-      );
+      const response = await this.httpService.axiosRef.post(this.sendEmailUrl, sendEmailParams);
 
       return response.data;
     } catch {

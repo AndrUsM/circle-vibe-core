@@ -1,28 +1,10 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  NotFoundException,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { AccountStatus } from '@circle-vibe/shared';
 
 import { UserService } from '../user/service/user.service';
-import {
-  AuthentificationInput,
-  AuthorizationInput,
-  RefreshTokenInputDto,
-  RestorePasswordInputDto,
-} from './dtos';
+import { AuthentificationInput, AuthorizationInput, RefreshTokenInputDto, RestorePasswordInputDto } from './dtos';
 import { AuthService } from './auth.service';
 import { comparePasswords } from './utils';
 import { JwtAuthGuard } from 'src/guards';
@@ -122,10 +104,7 @@ export class AuthController {
       throw new NotFoundException('User not found');
     }
 
-    const isPasswordsMatch = this.userAuthService.comparePasswords(
-      params.password,
-      user.password,
-    );
+    const isPasswordsMatch = this.userAuthService.comparePasswords(params.password, user.password);
 
     if (!isPasswordsMatch) {
       throw new BadRequestException('User not found');
@@ -181,10 +160,8 @@ export class AuthController {
       throw new BadRequestException();
     }
 
-    const isUserWithTheSameEmailExists =
-      await this.userService.matchUserByEmail(params?.email);
-    const isUserWIthTheSamePhoneExists =
-      await this.userService.checkExistence(params);
+    const isUserWithTheSameEmailExists = await this.userService.matchUserByEmail(params?.email);
+    const isUserWIthTheSamePhoneExists = await this.userService.checkExistence(params);
 
     if (isUserWithTheSameEmailExists?.id || isUserWIthTheSamePhoneExists) {
       throw new BadRequestException('User already exists');
@@ -194,9 +171,7 @@ export class AuthController {
       throw new NotFoundException('Passwords do not match');
     }
 
-    const encryptedPassword = this.userAuthService.encryptPassword(
-      params.password,
-    );
+    const encryptedPassword = this.userAuthService.encryptPassword(params.password);
     const createdUser = await this.userService.createUser({
       ...params,
       type: params.type,

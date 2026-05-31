@@ -1,8 +1,4 @@
-import {
-  MessageFileEntityType,
-  MessageFileType,
-  MessageType,
-} from '@prisma/client';
+import { MessageFileEntityType, MessageFileType, MessageType } from '@prisma/client';
 
 export interface VideoFileMetaInputDto {
   fileName: string;

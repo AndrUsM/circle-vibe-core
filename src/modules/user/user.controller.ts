@@ -1,16 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  NotFoundException,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 
 import { UserService } from './service/user.service';
 
@@ -74,14 +62,8 @@ export class UserController {
 
   @Put(':id')
   @HttpCode(200)
-  async changeUserChatStatus(
-    @Param('id') userId: number,
-    @Body() params: UpdateUserDtoInput,
-  ) {
-    const updatedUser = await this.userService.updateUser(
-      Number(userId),
-      params,
-    );
+  async changeUserChatStatus(@Param('id') userId: number, @Body() params: UpdateUserDtoInput) {
+    const updatedUser = await this.userService.updateUser(Number(userId), params);
 
     if (!updatedUser) {
       throw new BadRequestException();

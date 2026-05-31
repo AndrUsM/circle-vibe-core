@@ -26,10 +26,7 @@ export class UserRepository {
     return user as User;
   }
 
-  async partiallyUpdate(
-    id: number,
-    updateUserInputDto: Partial<UpdateUserDtoInput>,
-  ) {
+  async partiallyUpdate(id: number, updateUserInputDto: Partial<UpdateUserDtoInput>) {
     const user = await this.databaseService.user.findFirst({
       where: { id },
     });
@@ -45,10 +42,7 @@ export class UserRepository {
     return updatedUser as User;
   }
 
-  async updateUser(
-    id: number,
-    updateUserInputDto: UpdateUserDtoInput,
-  ): Promise<User | null> {
+  async updateUser(id: number, updateUserInputDto: UpdateUserDtoInput): Promise<User | null> {
     const user = (await this.databaseService.user.findUnique({
       where: {
         id,
@@ -59,17 +53,11 @@ export class UserRepository {
       return null;
     }
 
-    const password = updateUserInputDto?.password?.length
-      ? this.userAuthService.encryptPassword(updateUserInputDto.password)
-      : null;
+    const password = updateUserInputDto?.password?.length ? this.userAuthService.encryptPassword(updateUserInputDto.password) : null;
 
     const updatedPassword = password ? { password } : {};
-    const avatarUrl = updateUserInputDto?.avatarUrl?.length
-      ? { avatarUrl: updateUserInputDto.avatarUrl }
-      : null;
-    const optimizedAvatarUrl = updateUserInputDto?.avatarUrlOptimized?.length
-      ? { avatarUrlOptimized: updateUserInputDto.avatarUrlOptimized }
-      : null;
+    const avatarUrl = updateUserInputDto?.avatarUrl?.length ? { avatarUrl: updateUserInputDto.avatarUrl } : null;
+    const optimizedAvatarUrl = updateUserInputDto?.avatarUrlOptimized?.length ? { avatarUrlOptimized: updateUserInputDto.avatarUrlOptimized } : null;
 
     const updatedUser = await this.databaseService.user.update({
       where: {
@@ -126,10 +114,7 @@ export class UserRepository {
     }) as Promise<User | null>;
   }
 
-  async checkExistence(user: {
-    email?: string;
-    primaryPhone?: string;
-  }): Promise<boolean> {
+  async checkExistence(user: { email?: string; primaryPhone?: string }): Promise<boolean> {
     const userWithTheSameCredentials =
       !!user?.primaryPhone || user?.email
         ? await this.databaseService.user.findFirst({
@@ -142,10 +127,7 @@ export class UserRepository {
     return Boolean(userWithTheSameCredentials?.id);
   }
 
-  async setUserChatStatus(
-    userId: number,
-    chatStatus: UserChatStatus,
-  ): Promise<User> {
+  async setUserChatStatus(userId: number, chatStatus: UserChatStatus): Promise<User> {
     const user = await this.databaseService.user.update({
       where: {
         id: userId,

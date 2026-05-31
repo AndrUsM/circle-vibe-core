@@ -1,20 +1,8 @@
-import {
-  ChatSocketCommand,
-  CreateChatSocketParams,
-  DEFAULT_PAGINATION_PAGE_SIZE,
-  UserChatStatus,
-} from '@circle-vibe/shared';
+import { ChatSocketCommand, CreateChatSocketParams, DEFAULT_PAGINATION_PAGE_SIZE, UserChatStatus } from '@circle-vibe/shared';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { SocketAuthParams } from 'src/guards/ws-auth-guard/params';
-import {
-  MessageService,
-  ChatService,
-  AuthService,
-  UserService,
-  ParticipantService,
-  ParticipantGatewayStateService,
-} from 'src/modules';
+import { MessageService, ChatService, AuthService, UserService, ParticipantService, ParticipantGatewayStateService } from 'src/modules';
 import { GetMessagesByChatPaginatedParams } from 'src/modules/message/params/get-messages-by-chat-paginated.params';
 
 @Injectable()
@@ -37,8 +25,7 @@ export class ChatGatewayService {
       return;
     }
 
-    const userFromState =
-      await this.participantGatewayStateService.getByUserId(userId);
+    const userFromState = await this.participantGatewayStateService.getByUserId(userId);
 
     if (!userFromState) {
       await this.participantGatewayStateService.create({
@@ -61,8 +48,7 @@ export class ChatGatewayService {
   }
 
   async getAuthParams(socket: Socket) {
-    const { token, personalToken } = (socket.handshake.auth ??
-      {}) as SocketAuthParams;
+    const { token, personalToken } = (socket.handshake.auth ?? {}) as SocketAuthParams;
 
     try {
       const { userId } = this.authService.parseJWT(token, personalToken);
@@ -77,10 +63,7 @@ export class ChatGatewayService {
     }
   }
 
-  async refreshToken(
-    socket: Socket,
-    authToken: string,
-  ): Promise<number | undefined> {
+  async refreshToken(socket: Socket, authToken: string): Promise<number | undefined> {
     const userId = this.authService.decodeJWT(authToken)?.userId;
 
     if (!userId) {
@@ -105,17 +88,16 @@ export class ChatGatewayService {
       userId,
     });
 
-    const messagesForChat =
-      await this.messageService.getMessagesByChatPaginated(
-        chatId,
-        {
-          pageSize: this.#dataLimit,
-          page: 1,
-        },
-        {
-          currentUserId: userId,
-        },
-      );
+    const messagesForChat = await this.messageService.getMessagesByChatPaginated(
+      chatId,
+      {
+        pageSize: this.#dataLimit,
+        page: 1,
+      },
+      {
+        currentUserId: userId,
+      },
+    );
 
     return {
       messagesForChat,
@@ -147,16 +129,12 @@ export class ChatGatewayService {
     const { userId: fallbackUserId } = await this.getAuthParams(client);
     const clientId = client.id;
 
-    const state =
-      await this.participantGatewayStateService.getByClientId(clientId);
+    const state = await this.participantGatewayStateService.getByClientId(clientId);
 
     return state?.userId ?? fallbackUserId ?? null;
   }
 
-  async getMessageByChat(
-    chatId: number,
-    filters?: GetMessagesByChatPaginatedParams,
-  ) {
+  async getMessageByChat(chatId: number, filters?: GetMessagesByChatPaginatedParams) {
     return this.messageService.getMessagesByChatPaginated(
       chatId,
       {

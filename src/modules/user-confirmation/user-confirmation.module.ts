@@ -5,6 +5,6 @@ import { EmailService } from 'src/core/services';
 
 @Module({
   controllers: [UserConfirmationController],
-  providers: [UserConfirmationService, EmailService,]
+  providers: [UserConfirmationService, EmailService],
 })
 export class UserConfirmationModule {}

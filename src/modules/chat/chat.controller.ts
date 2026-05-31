@@ -1,21 +1,5 @@
 import { UserChatRole } from '@prisma/client';
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  HttpCode,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  Get,
-  Query,
-  Delete,
-  UseGuards,
-  Req,
-  UnauthorizedException,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, NotFoundException, Param, Post, Put, Get, Query, Delete, UseGuards, Req, UnauthorizedException, ParseIntPipe } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { ChatService } from './chat.service';
@@ -59,10 +43,7 @@ export class ChatController {
   })
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  async updateChat(
-    @Param('id') chatId: number,
-    @Body() params: ChatUpdateInputDto,
-  ) {
+  async updateChat(@Param('id') chatId: number, @Body() params: ChatUpdateInputDto) {
     const chat = await this.chatService.findById(chatId);
 
     if (!chat) {
@@ -81,8 +62,8 @@ export class ChatController {
     }
 
     return this.participantService.getChatsParticipantsByAuthorizedUser({
-      userId
-    })
+      userId,
+    });
   }
 
   @Get(':id/participants')
@@ -97,53 +78,32 @@ export class ChatController {
 
   @Put(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  async updateMessage(
-    @Param('id') chatId: number,
-    @Param('messageId') messageId: number,
-    @Body() payload: MessageUpdateInputDto,
-  ) {
+  async updateMessage(@Param('id') chatId: number, @Param('messageId') messageId: number, @Body() payload: MessageUpdateInputDto) {
     if (!chatId || !messageId) {
       throw new BadRequestException();
     }
 
-    return this.messageService.updateMessage(
-      Number(chatId),
-      Number(messageId),
-      payload,
-    );
+    return this.messageService.updateMessage(Number(chatId), Number(messageId), payload);
   }
 
   @Get(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  async getMessageById(
-    @Param('id') chatId: number,
-    @Param('messageId') messageId: number,
-  ) {
+  async getMessageById(@Param('id') chatId: number, @Param('messageId') messageId: number) {
     if (!chatId || !messageId) {
       throw new BadRequestException();
     }
 
-    return this.messageService.getMessageById(
-      Number(messageId),
-      Number(chatId),
-    );
+    return this.messageService.getMessageById(Number(messageId), Number(chatId));
   }
 
   @Put(':id/participants/:participantId')
   @UseGuards(JwtAuthGuard)
-  async updateChatParticipant(
-    @Param('id') chatId: number,
-    @Param('participantId') participantId: number,
-    @Body() payload: UpdateChatParticipantInput,
-  ) {
+  async updateChatParticipant(@Param('id') chatId: number, @Param('participantId') participantId: number, @Body() payload: UpdateChatParticipantInput) {
     if (!chatId || !participantId) {
       throw new BadRequestException();
     }
 
-    return this.participantService.updateChatParticipant(
-      Number(participantId),
-      payload,
-    );
+    return this.participantService.updateChatParticipant(Number(participantId), payload);
   }
 
   @Get(':id/user-to-invite')
@@ -174,20 +134,12 @@ export class ChatController {
 
   @Delete(':id/message/:messageId')
   @UseGuards(JwtAuthGuard)
-  deleteMessage(
-    @Req() request: Request & HashedTokenParams,
-    @Param('id') chatId: number,
-    @Param('messageId') messageId: number,
-  ) {
+  deleteMessage(@Req() request: Request & HashedTokenParams, @Param('id') chatId: number, @Param('messageId') messageId: number) {
     if (!request?.userId) {
       throw new UnauthorizedException();
     }
 
-    return this.chatService.deleteChatMessage(
-      Number(chatId),
-      Number(messageId),
-      Number(request?.userId),
-    );
+    return this.chatService.deleteChatMessage(Number(chatId), Number(messageId), Number(request?.userId));
   }
 
   @ApiResponse({
@@ -215,10 +167,7 @@ export class ChatController {
     description: 'Link for invite has been successfully created',
   })
   @Post(':id/invite')
-  async createInviteLink(
-    @Param('id') chatId: number,
-    @Body() body: CreateInviteLinkBodyParams,
-  ) {
+  async createInviteLink(@Param('id') chatId: number, @Body() body: CreateInviteLinkBodyParams) {
     const targetUserId = body?.targetUserId;
     const fromChatParticipantId = body?.fromChatParticipantId;
 
@@ -226,12 +175,7 @@ export class ChatController {
       throw new BadRequestException();
     }
 
-    const { token, expirationDate } =
-      await this.chatService.generateInviteToken(
-        Number(chatId),
-        Number(targetUserId),
-        Number(fromChatParticipantId),
-      );
+    const { token, expirationDate } = await this.chatService.generateInviteToken(Number(chatId), Number(targetUserId), Number(fromChatParticipantId));
 
     await this.chatInviteService.create({
       chatId: Number(chatId),
@@ -268,15 +212,9 @@ export class ChatController {
       throw new BadRequestException('invite-token.invalid');
     }
 
-    const isJoined = await this.chatService.isChatParticipantExist(
-      data.chatId,
-      data.targetUserId,
-    );
+    const isJoined = await this.chatService.isChatParticipantExist(data.chatId, data.targetUserId);
     const targetUser = await this.userService.getById(data.targetUserId);
-    const fromChatParticipant =
-      await this.participantService.getChatParticipantById(
-        data.fromChatParticipantId,
-      );
+    const fromChatParticipant = await this.participantService.getChatParticipantById(data.fromChatParticipantId);
 
     if (!targetUser) {
       throw new BadRequestException('invite-token.user-not-found');
@@ -290,20 +228,15 @@ export class ChatController {
       throw new BadRequestException('invite-token.already-joined');
     }
 
-    const chatParticipant = await this.participantService.create(
-      {
-        chatId: data.chatId,
-        userId: data.targetUserId,
-        chatRole: data.role ?? UserChatRole.MEMBER,
-      },
-    );
+    const chatParticipant = await this.participantService.create({
+      chatId: data.chatId,
+      userId: data.targetUserId,
+      chatRole: data.role ?? UserChatRole.MEMBER,
+    });
     const chat = await this.chatService.getById(data.chatId);
 
     await this.chatInviteService.deleteByToken(token);
-    await this.chatInviteService.clearAllInvitationsForUser(
-      data.targetUserId,
-      data.chatId,
-    );
+    await this.chatInviteService.clearAllInvitationsForUser(data.targetUserId, data.chatId);
 
     return {
       chatParticipant,

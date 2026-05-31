@@ -1,23 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/core';
-import {
-  MessageCreateInputDto,
-  MessageFilesInputDto,
-  MessageFileVideoCreateDto,
-  MessageUpdateInputDto,
-} from './dtos';
-import {
-  Message,
-  MessageFile,
-  MessageStatus,
-  SendFileMessageChatSocketParams,
-} from '@circle-vibe/shared';
-import {
-  MessageFileEntityType,
-  MessageFileType,
-  MessageType,
-  Prisma,
-} from '@prisma/client';
+import { MessageCreateInputDto, MessageFilesInputDto, MessageFileVideoCreateDto, MessageUpdateInputDto } from './dtos';
+import { Message, MessageFile, MessageStatus, SendFileMessageChatSocketParams } from '@circle-vibe/shared';
+import { MessageFileEntityType, MessageFileType, MessageType, Prisma } from '@prisma/client';
 
 @Injectable()
 export class MessageRepository {
@@ -46,11 +31,8 @@ export class MessageRepository {
     }) as unknown as Promise<Message | null>;
   }
 
-  async createFileVideoMessage(
-    messageFileVideoCreatDto: MessageFileVideoCreateDto,
-  ) {
-    const { fileUrl, fileMeta, optimizedUrl, ...payload } =
-      messageFileVideoCreatDto;
+  async createFileVideoMessage(messageFileVideoCreatDto: MessageFileVideoCreateDto) {
+    const { fileUrl, fileMeta, optimizedUrl, ...payload } = messageFileVideoCreatDto;
     const messagePart = await this.createMessage({
       ...payload,
       files: [],
@@ -230,11 +212,7 @@ export class MessageRepository {
     }) as Promise<Message | null>;
   }
 
-  async updateMessage(
-    chatId: number,
-    messageId: number,
-    payload: MessageUpdateInputDto,
-  ): Promise<Message | null> {
+  async updateMessage(chatId: number, messageId: number, payload: MessageUpdateInputDto): Promise<Message | null> {
     await this.databaseService.message.update({
       where: {
         id: messageId,
@@ -261,10 +239,7 @@ export class MessageRepository {
     }) as Promise<Message | null>;
   }
 
-  async linkFileToMessage(
-    messageId: number,
-    file: Omit<MessageFile, 'id' | 'messageId'>,
-  ) {
+  async linkFileToMessage(messageId: number, file: Omit<MessageFile, 'id' | 'messageId'>) {
     const data = {
       ...file,
       messageId,
@@ -275,10 +250,7 @@ export class MessageRepository {
     });
   }
 
-  async getBlockedChartParticipants(
-    currentUserId: number,
-    chatId: number,
-  ): Promise<number[]> {
+  async getBlockedChartParticipants(currentUserId: number, chatId: number): Promise<number[]> {
     const blockedUsers = await this.databaseService.user.findUnique({
       where: {
         id: currentUserId,
@@ -288,18 +260,17 @@ export class MessageRepository {
       },
     });
 
-    const blockedParticipants =
-      await this.databaseService.chatParticipant.findMany({
-        where: {
-          chatId,
-          userId: {
-            in: blockedUsers?.blockedUserIds,
-          },
+    const blockedParticipants = await this.databaseService.chatParticipant.findMany({
+      where: {
+        chatId,
+        userId: {
+          in: blockedUsers?.blockedUserIds,
         },
-        select: {
-          id: true,
-        },
-      });
+      },
+      select: {
+        id: true,
+      },
+    });
 
     return blockedParticipants.map(({ id }) => id);
   }

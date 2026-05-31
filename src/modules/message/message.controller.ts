@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  NotFoundException,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Post, Query } from '@nestjs/common';
 import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 import { MessageCreateInputDto, MessagesPaginatedInputDto } from './dtos';
@@ -39,11 +31,7 @@ export class MessageController {
     description: 'Query parameters',
   })
   @HttpCode(200)
-  async chatMessagesPaginated(
-    @Query('chatId') chatId: number,
-    @Query('page') page: number,
-    @Query('pageSize') pageSize: number,
-  ) {
+  async chatMessagesPaginated(@Query('chatId') chatId: number, @Query('page') page: number, @Query('pageSize') pageSize: number) {
     const chat = await this.chatService.findById(chatId);
 
     if (chat === null) {

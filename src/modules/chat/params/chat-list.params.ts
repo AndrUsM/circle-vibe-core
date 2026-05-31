@@ -1,4 +1,4 @@
-import { ChatType } from "@circle-vibe/shared";
+import { ChatType } from '@circle-vibe/shared';
 
 export interface ChatListParams {
   page: number;

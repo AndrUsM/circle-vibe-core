@@ -9,13 +9,10 @@ import { AuthService } from 'src/modules/auth/auth.service';
 @Injectable()
 export class WsAuthGuard implements CanActivate {
   constructor(private authService: AuthService) {}
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const client: Socket = context.switchToWs().getClient<Socket>();
     const token = this.#getTokenFromSocket(client);
-    const personalToken = (client.handshake.auth as SocketAuthParams)
-      ?.personalToken;
+    const personalToken = (client.handshake.auth as SocketAuthParams)?.personalToken;
 
     const { isValid } = this.authService.parseJWT(token ?? '', personalToken);
 
@@ -27,10 +24,6 @@ export class WsAuthGuard implements CanActivate {
   }
 
   #getTokenFromSocket(socket: Socket): string | null {
-    return (
-      (socket.handshake.auth?.token as string) ||
-      socket.handshake.headers?.authorization ||
-      null
-    );
+    return (socket.handshake.auth?.token as string) || socket.handshake.headers?.authorization || null;
   }
 }

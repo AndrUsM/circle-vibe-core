@@ -1,5 +1,5 @@
-import { MessageType } from "@prisma/client";
-import { MessageFilesInputDto } from "./message-files.input";
+import { MessageType } from '@prisma/client';
+import { MessageFilesInputDto } from './message-files.input';
 
 export interface MessageCreateInputDto {
   content: string;

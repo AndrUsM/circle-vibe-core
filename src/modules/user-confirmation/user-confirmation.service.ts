@@ -15,9 +15,7 @@ export class UserConfirmationService {
     private readonly emailService: EmailService,
   ) {}
 
-  async generateConfirmationCode(
-    params: GenerateConfirmationCode,
-  ): Promise<string | null> {
+  async generateConfirmationCode(params: GenerateConfirmationCode): Promise<string | null> {
     const code = Randomstring.generate({
       length: 6,
       charset: 'numeric',
@@ -49,11 +47,11 @@ export class UserConfirmationService {
     const templateContext: EmailServerAccountConfirmationByEmailContextParams = {
       name: getUserFullName(user),
       confirmationCode: code,
-    }
+    };
 
     await this.emailService.sendEmail({
       emails: [params.email],
-      subject: "Account confirmation",
+      subject: 'Account confirmation',
       template: EmailServerTemplateName.ACCOUNT_CONFIRMATION_BY_EMAIL,
       templateContext,
     });
@@ -62,15 +60,14 @@ export class UserConfirmationService {
   }
 
   async confirmAccount(params: UserConfirmationConfirmInput): Promise<boolean> {
-    const lastConfirmation =
-      await this.databaseService.userConfirmation.findFirst({
-        where: {
-          email: params.email,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+    const lastConfirmation = await this.databaseService.userConfirmation.findFirst({
+      where: {
+        email: params.email,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     if (!lastConfirmation) {
       return false;

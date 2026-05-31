@@ -20,15 +20,10 @@ export class AuthService {
     });
   };
 
-  parseJWT = (
-    token: string,
-    personalToken: string,
-    place?: string,
-  ): ParsedJWT => {
+  parseJWT = (token: string, personalToken: string, place?: string): ParsedJWT => {
     try {
       const payload = jwt.verify(token, personalToken) as JwtPayload;
-      const isExpired =
-        Boolean(payload?.exp) && isTokenExpired(Number(payload?.exp));
+      const isExpired = Boolean(payload?.exp) && isTokenExpired(Number(payload?.exp));
 
       return {
         isExpired,

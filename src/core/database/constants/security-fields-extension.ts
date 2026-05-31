@@ -1,8 +1,5 @@
 import { Prisma } from '@prisma/client';
-import {
-  convertContentToBase64,
-  convertContentFromBase64,
-} from '@circle-vibe/shared';
+import { convertContentToBase64, convertContentFromBase64 } from '@circle-vibe/shared';
 
 import { SENSITIVE_FIELDS_MAP } from './sensitive-fields-map';
 
@@ -17,14 +14,14 @@ export const ENCRYPTION_FIELDS_EXTENSION = Prisma.defineExtension({
       {
         async create({ args, query }) {
           if (args.data) {
-            for (const field of fields!) {
+            for (const field of fields) {
               if (args.data[field]) {
                 args.data[field] = convertContentToBase64(args.data[field]);
               }
             }
           }
           const result = await query(args);
-          for (const field of fields!) {
+          for (const field of fields) {
             if (result?.[field]) {
               result[field] = convertContentFromBase64(result[field]);
             }
@@ -34,14 +31,14 @@ export const ENCRYPTION_FIELDS_EXTENSION = Prisma.defineExtension({
 
         async update({ args, query }) {
           if (args.data) {
-            for (const field of fields!) {
+            for (const field of fields) {
               if (args.data[field]) {
                 args.data[field] = convertContentToBase64(args.data[field]);
               }
             }
           }
           const result = await query(args);
-          for (const field of fields!) {
+          for (const field of fields) {
             if (result?.[field]) {
               result[field] = convertContentFromBase64(result[field]);
             }
@@ -51,7 +48,7 @@ export const ENCRYPTION_FIELDS_EXTENSION = Prisma.defineExtension({
 
         async findUnique({ args, query }) {
           const result = await query(args);
-          for (const field of fields!) {
+          for (const field of fields) {
             if (result?.[field]) {
               result[field] = convertContentFromBase64(result[field]);
             }
@@ -62,7 +59,7 @@ export const ENCRYPTION_FIELDS_EXTENSION = Prisma.defineExtension({
         async findMany({ args, query }) {
           const result = await query(args);
           return result.map((record) => {
-            for (const field of fields!) {
+            for (const field of fields) {
               if (record?.[field]) {
                 record[field] = convertContentFromBase64(record[field]);
               }
