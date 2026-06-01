@@ -3,5 +3,6 @@ import { ParticipantGatewayStateService } from './participant-gateway-state.serv
 
 @Module({
   providers: [ParticipantGatewayStateService],
+  exports: [ParticipantGatewayStateService],
 })
 export class ParticipantGatewayStateModule {}

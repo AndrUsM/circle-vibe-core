@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
-import { UserConfirmationService } from './user-confirmation.service';
+import { UserConfirmationService } from './services/user-confirmation.service';
 import { UserConfirmationConfirmInput, UserConfirmationGenerateCode } from './dtos';
 
 @Controller('user-confirmation')

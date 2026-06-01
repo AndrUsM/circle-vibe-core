@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ChatParticipant } from '@prisma/client';
 import { User, UserChatStatus } from '@circle-vibe/shared';
 
@@ -13,6 +13,7 @@ export class UserRepository {
   constructor(
     private databaseService: DatabaseService,
     private fileService: FileService,
+    @Inject(forwardRef(() => UserAuthService))
     private userAuthService: UserAuthService,
   ) {}
 

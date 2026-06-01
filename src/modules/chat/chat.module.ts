@@ -1,27 +1,16 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import { ParticipantService, ParticipantRepository } from '../participant';
-import { UserService, UserRepository, UserAuthService } from '../user';
-import { ChatInviteService } from '../chat-invites';
-import { FileService } from 'src/core/services';
-import { MessageService, MessageRepository, MessageMappers } from '../message';
+import { FileServiceModule } from 'src/core/services';
+import { MessageModule } from '../message';
+import { ParticipantModule } from '../participant';
+import { UsersModule } from '../user';
+import { ChatInviteModule } from '../chat-invites';
 
 @Module({
+  imports: [FileServiceModule, forwardRef(() => MessageModule), ParticipantModule, forwardRef(() => UsersModule), ChatInviteModule],
   controllers: [ChatController],
-  providers: [
-    ChatService,
-    ParticipantService,
-    ParticipantRepository,
-    UserService,
-    ChatInviteService,
-    FileService,
-    UserService,
-    UserAuthService,
-    UserRepository,
-    MessageService,
-    MessageRepository,
-    MessageMappers,
-  ],
+  providers: [ChatService],
+  exports: [ChatService],
 })
 export class ChatModule {}

@@ -1,18 +1,16 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UserService } from '../user';
-import { EmailService, EmailServiceHttpModule, FileService } from 'src/core/services';
+import { EmailServiceHttpModule, FileServiceModule } from 'src/core/services';
 import { AuthStartUpService } from './services';
-
 import { ChatService } from '../chat';
 import { ParticipantService, ParticipantRepository } from '../participant';
-import { UserAuthService, UserRepository } from '../user';
+import { UsersModule } from '../user';
 
 @Module({
-  imports: [EmailServiceHttpModule],
+  imports: [EmailServiceHttpModule, FileServiceModule, forwardRef(() => UsersModule)],
   controllers: [AuthController],
-  providers: [AuthService, UserService, FileService, EmailService, ChatService, UserAuthService, UserRepository, AuthStartUpService, ParticipantService, ParticipantRepository],
+  providers: [ChatService, ParticipantService, ParticipantRepository, AuthService, AuthStartUpService],
   exports: [AuthService],
 })
 export class AuthModule {}

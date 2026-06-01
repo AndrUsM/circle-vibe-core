@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserConfirmationService } from './user-confirmation.service';
+import { UserConfirmationService } from './services/user-confirmation.service';
 
 describe('UserConfirmationService', () => {
   let service: UserConfirmationService;

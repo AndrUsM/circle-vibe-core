@@ -1,47 +1,35 @@
-import * as Randomstring from 'randomstring';
 import { Injectable } from '@nestjs/common';
 
 import { EmailServerAccountConfirmationByEmailContextParams, EmailServerTemplateName, getUserFullName } from '@circle-vibe/shared';
 
-import { DatabaseService } from 'src/core';
-import { GenerateConfirmationCode } from './params';
-import { UserConfirmationConfirmInput } from './dtos';
+import { GenerateConfirmationCode } from '../params';
+import { UserConfirmationConfirmInput } from '../dtos';
 import { EmailService } from 'src/core/services';
+import { UserConfirmationRepository } from '../user-confirmation.repository';
+import { UserService } from '../../user';
+import { UserConfirmationCodeGenerationService } from './user-confirmation-code-generation.service';
 
 @Injectable()
 export class UserConfirmationService {
   constructor(
-    private readonly databaseService: DatabaseService,
     private readonly emailService: EmailService,
+    private readonly userService: UserService,
+    private readonly userConfirmationCodeGenerationService: UserConfirmationCodeGenerationService,
+    private readonly userConfirmationRepository: UserConfirmationRepository,
   ) {}
 
   async generateConfirmationCode(params: GenerateConfirmationCode): Promise<string | null> {
-    const code = Randomstring.generate({
-      length: 6,
-      charset: 'numeric',
-    });
-
-    const user = await this.databaseService.user.findUnique({
-      where: {
-        email: params.email,
-      },
-      select: {
-        id: true,
-        firstname: true,
-        surname: true,
-      },
-    });
+    const code = this.userConfirmationCodeGenerationService.generateCode();
+    const user = await this.userService.getByEmail(params.email);
 
     if (!user) {
       return null;
     }
 
-    await this.databaseService.userConfirmation.create({
-      data: {
-        userId: user.id,
-        email: params.email,
-        code,
-      },
+    await this.userConfirmationRepository.create({
+      userId: user?.id,
+      email: user?.email,
+      code,
     });
 
     const templateContext: EmailServerAccountConfirmationByEmailContextParams = {
@@ -60,14 +48,7 @@ export class UserConfirmationService {
   }
 
   async confirmAccount(params: UserConfirmationConfirmInput): Promise<boolean> {
-    const lastConfirmation = await this.databaseService.userConfirmation.findFirst({
-      where: {
-        email: params.email,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const lastConfirmation = await this.userConfirmationRepository.getLastConfirmation(params?.email);
 
     if (!lastConfirmation) {
       return false;

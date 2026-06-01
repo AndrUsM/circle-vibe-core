@@ -25,6 +25,10 @@ export class UserService {
     return this.userRepository.getById(userId);
   }
 
+  async getByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findUserByPredicate({ email });
+  }
+
   async createUser(user: CreateUserDtoInput): Promise<User> {
     const inputDto = this.#generateNewUserPayload(user);
     const createdUser = await this.userRepository.createUser(inputDto);
